@@ -14,7 +14,7 @@ exports.authDirector = (req, res, next) => {
     let user = undefined
     jwt.verify(token, process.env.JWT_SECRET, async (err, payload) => {
       if (!err) user = payload
-      if (user?.role !== role.DIRECTOR)
+      if (user?.role != role.DIRECTOR)
         return response.response_fail(res, response.FORBIDDEN, 'forbidden request')
       req.user = payload
       next()

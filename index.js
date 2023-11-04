@@ -9,8 +9,7 @@ mongoose.connect(process.env.MONGODB)
     console.log('connect database successfully')
   })
   .catch(err => {
-    console.log(process.env.MONGODB)
-    console.log(err)
+    console.err(err)
   })
 
 app.use('/api', routes)

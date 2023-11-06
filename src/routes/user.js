@@ -9,7 +9,7 @@ const User = require('../models/User')
 route.get('/gettoken', (req, res) => {
   try {
     const access_token = jwt.sign(
-      { _id: '6544c70a64c20039cfc70ee9', role: role.WAREHOUSE_MANAGER },
+      { _id: '654905cee8696275f8cdfcd3', role: role.TRANSACTION_EMPLOYEE },
       process.env.JWT_SECRET,
       {expiresIn: '1h'}
     )

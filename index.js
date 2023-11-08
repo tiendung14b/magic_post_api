@@ -3,6 +3,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const routes = require('./src/routes')
 const app = express()
+const cors = require('cors')
 
 mongoose.connect(process.env.MONGODB)
   .then(res => {

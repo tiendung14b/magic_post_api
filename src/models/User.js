@@ -20,7 +20,6 @@ const userSchema = new moongoose.Schema({
     enum: ['DIRECTOR', 'WAREHOUE_MANAGER', 'WAREHOUSE_EMPLOYEE', 'TRANSACTION_MANAGER', 'TRANSACTION_EMPLOYEE', 'DELIVER', 'GUEST'],
     default: 'user'
   },
-
 })
 
 module.exports = moongoose.model('User', userSchema)

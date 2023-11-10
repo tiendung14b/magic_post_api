@@ -9,17 +9,25 @@ const userSchema = new moongoose.Schema({
     type: String,
     required: true
   },
-  email: String,
-  phone_number: Number,
+  email: {
+    type: String,
+    require: true
+  },
+  phone_number: {
+    type: Number,
+    require: true,
+    index: true
+  },
   password: {
     type: String,
     required: true
   },
   role: {
     type: String,
-    enum: ['DIRECTOR', 'WAREHOUE_MANAGER', 'WAREHOUSE_EMPLOYEE', 'TRANSACTION_MANAGER', 'TRANSACTION_EMPLOYEE', 'DELIVER', 'GUEST'],
+    enum: ['DIRECTOR', 'WAREHOUSE_MANAGER', 'WAREHOUSE_EMPLOYEE', 'TRANSACTION_MANAGER', 'TRANSACTION_EMPLOYEE', 'DELIVER', 'GUEST'],
     default: 'user'
   },
+  urlAvatar: String
 })
 
 module.exports = moongoose.model('User', userSchema)

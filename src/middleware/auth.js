@@ -37,14 +37,19 @@ exports.authWarehouseManager = async (req, res, next) => {
         return response.response_fail(res, response.FORBIDDEN, 'forbidden request')
       }
       // check if this user can access to warehouse or not
-      const warehouse = await Warehouse.findById(req.params.warehouse_id)
+      const warehouse = await Warehouse.findById(user.work_place)
       if (!warehouse) return response.response_fail(res, response.NOT_FOUND, 'invalid warehouse_id')
       if (warehouse.warehouse_manager != user._id) {
         return response.response_fail(res, response.FORBIDDEN, 'forbidden request')
       }
+      // const warehouse = await Warehouse.findOne({ warehouse_manager: user._id })
+      // if (!warehouse) return response.response_fail(res, response.NOT_FOUND, 'manager is warehouseless')
       req.user = user
-      next()
+      req.warehouse = warehouse
+      // next()
+      response.response_success(res, response.OK, user)
     } catch (err) {
+      err.file = 'auth.js'
       response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
     }
   })
@@ -88,12 +93,15 @@ exports.authTransactionSpotManager = async (req, res, next) => {
         return response.response_fail(res, response.FORBIDDEN, 'forbidden request')
       }
       // check if this user can access to warehouse or not
-      const transactionSpot = await TransactionSpot.findById(req.params.transactionSpot_id)
+      const transactionSpot = await TransactionSpot.findById(user.work_place)
       if (!transactionSpot) return response.response_fail(res, response.NOT_FOUND, 'invalid transactionSpot_id')
       if (transactionSpot.transaction_manager != user._id) {
         return response.response_fail(res, response.FORBIDDEN, 'forbidden request')
       }
+      // const transactionSpot = await TransactionSpot.findOne({ transaction_manager: user._id })
+      // if (!transactionSpot) return response.response_fail(res, response.NOT_FOUND, 'manager is transactionSpotless')
       req.user = user
+      req.transactionSpot = transactionSpot
       next()
     } catch (err) {
       response.response_error(res, response.INTERNAL_SERVER_ERROR, err)

@@ -21,12 +21,12 @@ route.post('/create_warehouse_manager', auth.authDirector, userController.create
 
 route.post('/create_transaction_manager', auth.authDirector)
 
-route.post('create_warehouse_employee', auth.authWarehouseManager)
+route.post('create_warehouse_employee/:warehouse_id', auth.authWarehouseManager)
 
-route.post('create_transaction_employee')
+route.post('create_transaction_employee/:transaction_spot_id')
 
 route.put('/update_password/:id')
-
+    
 route.post('/update_user', auth.authDirector)
 
 route.post('update_warehouse_employee/:id', auth.authWarehouseManager)

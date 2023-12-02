@@ -2,7 +2,7 @@ const nodemailer = require("nodemailer");
 const response = require('./response')
 // Defines recipients
 
-const mail = async (subject, content, email_target) => {
+exports.send_password = async (subject, content, email_target) => {
   try {
     let transporter = nodemailer.createTransport({
       host: "mail.gmail.com",
@@ -23,7 +23,12 @@ const mail = async (subject, content, email_target) => {
       from: '"Magic Post" <magicpost.uet@gmail.com>',
       to: email_target, // Mails to array of recipients
       subject: subject,
-      html: '<p>Chào bạn,</p><p>Mật khẩu mới của bạn là: <b>'+ content + '</b></p><p>Trân trọng,</p><p>Magic Post</p>',
+      html: `
+        <p>Chào bạn,</p>
+        <p>Mật khẩu mới của bạn là: <b>'+ ${content} + '</b></p>
+        <p>Trân trọng,</p>
+        <p>Magic Post</p>
+        <img src="https://i.imgur.com/ctJvI6P.jpg" />`,
     });
   } catch (err) {
     err.file = 'utils/mail.js'
@@ -31,5 +36,3 @@ const mail = async (subject, content, email_target) => {
     console.log(err)
   }
 }
-
-module.exports = mail;

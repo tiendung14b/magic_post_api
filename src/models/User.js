@@ -1,4 +1,18 @@
+const { default: mongoose } = require('mongoose')
 const moongoose = require('mongoose')
+
+const workplaceSchema = new moongoose.Schema({
+  workplace_name: {
+    type: String,
+    enum: ["DIRECTOR", "WAREHOUSE", "TRANSACTION"]
+  },
+  workplace_id: mongoose.Schema.Types.ObjectId,
+  role: {
+    type: String,
+    enum: ["DIRECTOR", "WAREHOUSE_MANAGER", "TRANSACTION_MANAGER", "WAREHOUSE_EMPLOYEE", "TRANSACTION_EMPLOYEE", "DELIVER"],
+    required: true
+  }
+})
 
 const userSchema = new moongoose.Schema({
   last_name: {
@@ -14,18 +28,16 @@ const userSchema = new moongoose.Schema({
     require: true
   },
   phone_number: {
-    type: Number,
+    type: String,
     require: true,
-    index: true
+    unique: true
   },
   password: {
     type: String,
     required: true
   },
-  role: {
-    type: String,
-    enum: ['DIRECTOR', 'WAREHOUSE_MANAGER', 'WAREHOUSE_EMPLOYEE', 'TRANSACTION_MANAGER', 'TRANSACTION_EMPLOYEE', 'DELIVER', 'GUEST'],
-    default: 'user'
+  workplace: {
+    type: workplaceSchema,
   },
   urlAvatar: String
 })

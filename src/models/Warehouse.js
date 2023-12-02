@@ -1,23 +1,42 @@
 const mongoose = require('mongoose');
 
 const WarehouseSchema = new mongoose.Schema({
+  warehouse_name: {
+    type: String,
+  },
+  location: {
+    type: String,
+  },
   warehouse_id: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
-  transaction_spots: {
+  transaction_spots: [{
     type: mongoose.Schema.Types.ObjectId,
-    required: true
-  },
+    ref: 'TransactionSpot'
+  }],
   warehouse_manager: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true
   },
-  warehouse_employees: [mongoose.Schema.Types.ObjectId],
-  shipment_transactions: [mongoose.Schema.Types.ObjectId],
-  delivery_transactions: [mongoose.Schema.Types.ObjectId],
-  unconfirm_transactions: [mongoose.Schema.Types.ObjectId]
+  warehouse_employees: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  shipment_transactions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction'
+  }],
+  delivery_transactions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction'
+  }],
+  unconfirm_transactions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction'
+  }]
 });
 
 const Warehouse = mongoose.model('Warehouse', WarehouseSchema);

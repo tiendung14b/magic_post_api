@@ -17,13 +17,15 @@ route.post('/get_token', userController.get_token)
 // for test
 route.get('/get_info/:_id', userController.get_info)
 
-route.post('/create_warehouse_manager', auth.authDirector, userController.create_warehouse_manager)
+// route.post('/create_warehouse_manager', auth.authDirector, userController.create_warehouse_manager)
 
-route.post('/create_transaction_manager', auth.authDirector)
+// route.post('/create_transaction_manager', auth.authDirector)
 
-route.post('create_warehouse_employee/:warehouse_id', auth.authWarehouseManager)
+route.post('/create_manager', auth.authDirector, userController.create_manager)
 
-route.post('create_transaction_employee/:transaction_spot_id')
+route.post('/create_warehouse_employee', auth.authWarehouseManager, userController.create_warehouse_employee)
+
+route.post('/create_transaction_employee', auth.authTransactionSpotManager, userController.create_transaction_employee)
 
 route.put('/update_password/:id')
     

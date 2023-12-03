@@ -28,7 +28,7 @@ route.post('/create_warehouse_employee', auth.authWarehouseManager, userControll
 route.post('/create_transaction_employee', auth.authTransactionSpotManager, userController.create_transaction_employee)
 
 route.put('/update_password/:id')
-    
+
 route.post('/update_user', auth.authDirector)
 
 route.post('update_warehouse_employee/:id', auth.authWarehouseManager)

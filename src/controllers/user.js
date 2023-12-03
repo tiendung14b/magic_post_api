@@ -7,7 +7,6 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const mail = require('../utils/mail')
 
-
 exports.get_info = async (req, res) => {
   try {
     const _id = req.params._id;
@@ -27,22 +26,21 @@ exports.get_info = async (req, res) => {
 exports.get_token = async (req, res) => {
   try {
     const user = req.body
+    if (!user.phone_number || !user.password) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing required fields.')
+    }
+    console.log(user)
     const dataUser = await User.findOne({ phone_number: user.phone_number })
     if (!dataUser) return response.response_fail(res, response.NOT_FOUND, 'Account not exist!')
     // const match = await bcrypt.compare(user.password, dataUser.password)
-    const match = (dataUser.password == user.password)
-    /* console.log(user.password, dataUser.password) */
+    const match = (dataUser.password == user.password) 
     if (!match) return response.response_fail(res, response.NOT_FOUND, 'Password is incorrect.')
-    let work_place;
-    if (dataUser.role == role.WAREHOUSE_MANAGER) {
-      work_place = await Warehouse.findOne({ warehouse_manager: dataUser._id })
-      if (!work_place) return response.response_fail(res, response.NOT_FOUND, 'manager is warehouseless')
-    }
-    if (dataUser.role == role.TRANSACTION_MANAGER) {
-      work_place = await TransactionSpot.findOne({ transaction_manager: dataUser._id })
-      if (!work_place) return response.response_fail(res, response.NOT_FOUND, 'manager is transactionSpotless')
-    }
-    const access_token = jwt.sign({ _id: dataUser._id, role: dataUser.role, work_place: work_place._id }, process.env.JWT_SECRET, { expiresIn: '1h' })
+    //  token includes 3 fields: _id, role, work_place
+    //  client will decide what to do with role and load data from workplace
+    const access_token = jwt.sign({
+      _id: dataUser._id,
+      workplace: dataUser.workplace,
+    }, process.env.JWT_SECRET, { expiresIn: '1h' })
     response.response_success(res, response.OK, { access_token: access_token })
   } catch (err) {
     err.file = 'controller/user.js'
@@ -55,25 +53,37 @@ exports.create_manager = async (req, res) => {
   try {
     req.password = (Math.random() + 1).toString(36).substring(6)
     const hash_password = await bcrypt.hash(req.password, 10)
+    const importantFields = ['last_name', 'first_name', 'email', 'phone_number', 'role']
     const user = {
       last_name: req.body.last_name,
       first_name: req.body.first_name,
       email: req.body.email,
       phone_number: req.body.phone_number,
-      role: req.body.role,
+      workplace: {
+        workplace_name: req.body.workplace.workplace_name,
+        workplace_id: req.body.workplace.workplace_id,
+        role: req.body.workplace.role
+      },
       password: hash_password,
       urlAvatar: req.body.urlAvatar
     }
-    if (!user.last_name || !user.first_name || !user.email || !user.phone_number || !user.role || !user.password) {
-      response.response_fail(res, response.BAD_REQUEST, 'Missing required fields.')
+    console.log(user)
+    let hasEmptyField = false
+    Object.keys(user).forEach((key) => {
+      if (importantFields.includes(key) && !user[key]) {
+        hasEmptyField = true
+      }
+    })
+    if (hasEmptyField) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing required fields.')
     }
     User.create(user)
       .then((data) => {
         response.response_success(res, response.CREATED, data)
-        mail('Cấp mật khẩu mới', req.password, user.email)
+        mail.send_password('Cấp mật khẩu mới', req.password, user.email)
       })
       .catch((err) => {
-        response.response_fail(res, response.CONFLICT, err)
+        response.response_fail(res, response.CONFLICT, err.message)
       })
   } catch (err) {
     err.file = 'controller/user.js'

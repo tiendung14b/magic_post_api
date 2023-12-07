@@ -12,7 +12,7 @@ route.use(cors({
 route.use(body_parse.json())
 
 // for test
-route.post('/get_token', userController.get_token)
+route.get('/get_token', userController.get_token)
 
 // for test
 route.get('/get_info/:_id', userController.get_info)
@@ -21,18 +21,18 @@ route.get('/get_info/:_id', userController.get_info)
 
 // route.post('/create_transaction_manager', auth.authDirector)
 
-route.post('/create_manager', auth.authDirector, userController.create_manager)
+route.post('/manager', auth.authDirector, userController.create_manager)
 
-route.post('/create_warehouse_employee', auth.authWarehouseManager, userController.create_warehouse_employee)
+route.post('/warehouse_employee', auth.authWarehouseManager, userController.create_warehouse_employee)
 
-route.post('/create_transaction_employee', auth.authTransactionSpotManager, userController.create_transaction_employee)
+route.post('/transaction_employee', auth.authTransactionSpotManager, userController.create_transaction_employee)
 
-route.put('/update_password/:id')
+route.put('/password', auth.authToken, userController.update_password)
 
-route.post('/update_user', auth.authDirector)
+route.put('/user', auth.authDirector, userController.update_user)
 
-route.post('update_warehouse_employee/:id', auth.authWarehouseManager)
+route.put('/warehouse_employee', auth.authWarehouseManager, userController.update_warehouse_employee)
 
-route.post('update_transaction_employee/:id', auth.authWarehouseManager)
+route.put('/transaction_employee', auth.authTransactionSpotManager, userController.update_transaction_employee)
 
 module.exports = route

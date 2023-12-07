@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 
 const transactionSpotSchema = new mongoose.Schema({
+  name: {
+    type: String,
+  },
   location: {
     type: String, 
     required: true
@@ -10,16 +13,19 @@ const transactionSpotSchema = new mongoose.Schema({
     required: true,
     index: true
   },
-  warehouse_id: {
+  warehouse: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'Warehouse',
     required: true
   },
   transaction_manager: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true
   },
   transaction_employees: [{
-    type: mongoose.Schema.Types.ObjectId
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
   }],
   shipment_transactions: [{
     type: mongoose.Schema.Types.ObjectId

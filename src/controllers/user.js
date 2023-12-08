@@ -13,13 +13,13 @@ exports.get_info = async (req, res) => {
     const userData = await User.findById(_id)
     console.log(userData)
     if (!userData) {
-      response.response_fail(res, response.NOT_FOUND, "invalid id")
+      return response.response_fail(res, response.NOT_FOUND, "invalid id")
     }
-    response.response_success(res, response.OK, userData)
+    return response.response_success(res, response.OK, userData)
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'get_info'
-    response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }       
 }
 
@@ -40,11 +40,11 @@ exports.get_token = async (req, res) => {
       _id: dataUser._id,
       workplace: dataUser.workplace,
     }, process.env.JWT_SECRET, { expiresIn: '1h' })
-    response.response_success(res, response.OK, { access_token: access_token })
+    return response.response_success(res, response.OK, { access_token: access_token })
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'get_token'
-    response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
 
@@ -78,23 +78,23 @@ exports.create_manager = async (req, res) => {
     }
     User.create(user)
       .then((data) => {
-        response.response_success(res, response.CREATED, data)
-        mail.send_password('Cấp mật khẩu mới', req.password, user.email)
+        return response.response_success(res, response.CREATED, data)
+        //mail.send_password('Cấp mật khẩu mới', req.password, user.email)
       })
-      .catch((err) => {
-        response.response_fail(res, response.CONFLICT, err.message)
-      })
+      /* .catch((err) => {
+        return response.response_fail(res, response.CONFLICT, err.message)
+      }) */
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'create_warehouse_manager'
-    response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
 
 exports.create_warehouse_employee = async (req, res) => {
   try {
     const warehouse = req.warehouse
-    if(!warehouse) response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+    /* if(!warehouse) return response.response_error(res, response.INTERNAL_SERVER_ERROR, err) */
     req.password = (Math.random() + 1).toString(36).substring(6)
     const hash_password = await bcrypt.hash(req.password, 10)
     const importantFields = ['last_name', 'first_name', 'email', 'phone_number', 'role']
@@ -125,24 +125,24 @@ exports.create_warehouse_employee = async (req, res) => {
         //mail.send_password('Cấp mật khẩu mới', req.password, user.email)
         return data
       })
-      .catch((err) => {
-        response.response_fail(res, response.CONFLICT, err.message)
-      })
-    await Warehouse.updateOne({_id: warehouse._id}, { $addToSet: {warehouse_employees: newUser._id}}, null).catch((err) => {
-        response.response_fail(res, response.CONFLICT, err)
-      })
-    response.response_success(res, response.CREATED, newUser)
+      /* .catch((err) => {
+        return response.response_fail(res, response.CONFLICT, err.message)
+      }) */
+    await Warehouse.findByIdAndUpdate(warehouse._id, { $addToSet: {warehouse_employees: newUser._id}})/* .catch((err) => {
+        return response.response_fail(res, response.CONFLICT, err)
+      }) */
+    return response.response_success(res, response.CREATED, newUser)
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'create_warehouse_employee'
-    response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
 
 exports.create_transaction_employee = async (req, res) => {
   try {
     const transactionSpot = req.transactionSpot
-    if(!transactionSpot) response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+    /* if(!transactionSpot) return response.response_error(res, response.INTERNAL_SERVER_ERROR, err) */
     req.password = (Math.random() + 1).toString(36).substring(6)
     const hash_password = await bcrypt.hash(req.password, 10)
     const importantFields = ['last_name', 'first_name', 'email', 'phone_number', 'role']
@@ -159,7 +159,6 @@ exports.create_transaction_employee = async (req, res) => {
       password: hash_password,
       urlAvatar: req.body.urlAvatar
     }
-    console.log(user)
     let hasEmptyField = false
     Object.keys(user).forEach((key) => {
       if (importantFields.includes(key) && !user[key]) {
@@ -174,37 +173,37 @@ exports.create_transaction_employee = async (req, res) => {
         //mail.send_password('Cấp mật khẩu mới', req.password, user.email)
         return data
       })
-      .catch((err) => {
-        response.response_fail(res, response.CONFLICT, err.message)
-      })
-    await TransactionSpot.updateOne({_id: transactionSpot._id}, { $addToSet: {transaction_employees: newUser._id}}, null).catch((err) => {
-        response.response_fail(res, response.CONFLICT, err)
-      })
-    response.response_success(res, response.CREATED, newUser)
+      /* .catch((err) => {
+        return response.response_fail(res, response.CONFLICT, err.message)
+      }) */
+    await TransactionSpot.findByIdAndUpdate(transactionSpot._id, { $addToSet: {transaction_employees: newUser._id}}, null)/* .catch((err) => {
+        return response.response_fail(res, response.CONFLICT, err)
+      }) */
+    return response.response_success(res, response.CREATED, newUser)
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'create_transaction_employee'
-    response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
 
 exports.update_password = async (req, res) => {
   try {
     const user = req.user
-    await User.updateOne({_id: user._id}, {password: req.body.password}).catch((err) => {
+    await User.findByIdAndUpdate(user._id, {password: req.body.password})/* .catch((err) => {
       return response.response_fail(res, response.CONFLICT, err)
-    })
+    }) */
     return response.response_success(res, response.OK, 'successfully update password')
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'update_password'
-    response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
 
 exports.update_user = async (req, res) => {
   try {
-    if (!req.body._id || !req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where id or phone?')
+    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where phone number?')
     const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']
     const workplaceFields = ['workplace_name', 'workplace_id', 'role']
     let updateFieldObj = {}
@@ -219,22 +218,23 @@ exports.update_user = async (req, res) => {
       }
     })}
     //console.log(updateFieldObj);
-    const newUser = await User.updateOne({_id: req.body._id, phone_number: req.body.phone_number}, updateFieldObj).catch((err) => {
+    const mess = await User.updateOne({phone_number: req.body.phone_number}, updateFieldObj)/* .catch((err) => {
       return response.response_fail(res, response.CONFLICT, err)
-    })
-    return response.response_success(res, response.OK, newUser)
+    }) */
+    return response.response_success(res, response.OK, mess)
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'update_user'
-    response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
 
 exports.update_warehouse_employee = async (req, res) => {
   try {
     const warehouse = req.warehouse
-    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where id or phone?')
+    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where phone number?')
     const employee = await User.findOne({phone_number: req.body.phone_number})
+    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'phone no exist')
     if (!warehouse.warehouse_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'not your slave')
     const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']
     const workplaceFields = ['role']
@@ -249,20 +249,23 @@ exports.update_warehouse_employee = async (req, res) => {
         updateFieldObj.workplace[key] = req.body.workplace[key]
       }
     })}
-    const newUser = await User.updateOne({phone_number: req.body.phone_number}, updateFieldObj)
-    return response.response_success(res, response.OK, newUser)
+    const mess = await User.updateOne({phone_number: req.body.phone_number}, updateFieldObj)/* .catch((err) => {
+      return response.response_fail(res, response.CONFLICT, err)
+    }) */
+    return response.response_success(res, response.OK, mess)
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'update_warehouse_employee'
-    response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
 
 exports.update_transaction_employee = async (req, res) => {
   try {
     const transactionSpot = req.transactionSpot
-    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where id or phone?')
+    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where phone number?')
     const employee = await User.findOne({phone_number: req.body.phone_number})
+    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'phone no exist')
     if (!transactionSpot.transaction_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'not your slave')
     const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']
     const workplaceFields = ['role']
@@ -277,11 +280,113 @@ exports.update_transaction_employee = async (req, res) => {
         updateFieldObj.workplace[key] = req.body.workplace[key]
       }
     })}
-    const newUser = await User.updateOne({phone_number: req.body.phone_number}, updateFieldObj)
-    return response.response_success(res, response.OK, newUser)
+    const mess = await User.updateOne({phone_number: req.body.phone_number}, updateFieldObj)/* .catch((err) => {
+      return response.response_fail(res, response.CONFLICT, err)
+    }) */
+    return response.response_success(res, response.OK, mess)
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'update_warehouse_employee'
-    response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.delete_user = async (req, res) => {
+  try {
+    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where phone number?')
+    const user = await User.findOne({phone_number: req.body.phone_number})
+    if (!user) return response.response_fail(res, response.NOT_FOUND, 'phone no exist')
+    const mess1 = await User.deleteOne({phone_number: req.body.phone_number})/* .catch((err) => {
+      return response.response_fail(res, response.CONFLICT, err)
+    }) */
+    let mess2 = ''
+    if (user.workplace.workplace_id && user.workplace.workplace_name) {
+    A:  switch (user.workplace.workplace_name) {
+        case 'WAREHOUSE':
+          const warehouse = await Warehouse.findById(user.workplace.workplace_id)
+          if (!warehouse) {mess2 += 'warehouseless?'; break;}
+          switch (user.workplace.role) {
+            case 'WAREHOUSE_MANAGER':
+              if (!warehouse.warehouse_manager.equals(user._id)) {mess2 += 'not manager, identity thief?'; break;}
+              await Warehouse.findByIdAndUpdate(warehouse._id, {warehouse_manager: "000000000000000000000000"})
+              mess2 += 'remove manager from warehouse'
+              break;
+            default:
+              if (!warehouse.warehouse_employees.includes(user._id)) {mess2 += 'this user doesnt belong here, identity thief?'; break A;}
+              await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: {warehouse_employees: user._id}})/* .catch((err) => {
+                return response.response_fail(res, response.CONFLICT, err)
+              }) */
+              mess2 += 'remove employee from warehouse'
+              break;
+          }
+          break;
+        case 'TRANSACTION':
+          const transactionSpot = await TransactionSpot.findById(user.workplace.workplace_id)
+          if (!transactionSpot) {mess2 += 'transactionSpotless?'; break;}
+          switch (user.workplace.role) {
+            case 'TRANSACTION_MANAGER':
+              if (!transactionSpot.transaction_manager.equals(user._id)) {mess2 += 'not manager, identity thief?'; break;}
+              await TransactionSpot.findByIdAndUpdate(transactionSpot._id, {transaction_manager: "000000000000000000000000"})
+              mess2 += 'remove manager from transactionSpot'
+              break;
+            default:
+              if (!transactionSpot.transaction_employees.includes(user._id)) {mess2 += 'this user doesnt belong here, identity thief?'; break A;}
+              await TransactionSpot.findByIdAndUpdate(transactionSpot._id, { $pull: {transaction_employees: user._id}})/* .catch((err) => {
+                return response.response_fail(res, response.CONFLICT, err)
+              }) */
+              mess2 += 'remove employee from transactionSpot'
+              break;
+          }
+          break;
+      }
+    } else mess2 += 'homeless?'
+    mess1.message = mess2
+    return response.response_success(res, response.OK, mess1)
+  } catch (err) {
+    err.file = 'controller/user.js'
+    err.function = 'delete_user'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.delete_warehouse_employee = async (req, res) => {
+  try {
+    const warehouse = req.warehouse
+    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where phone number?')
+    const employee = await User.findOne({phone_number: req.body.phone_number})
+    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'phone no exist')
+    if (!warehouse.warehouse_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'not your slave')
+    const mess = await User.deleteOne({phone_number: req.body.phone_number})/* .catch((err) => {
+      return response.response_fail(res, response.CONFLICT, err)
+    }) */
+    await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: {warehouse_employees: employee._id}})/* .catch((err) => {
+      return response.response_fail(res, response.CONFLICT, err)
+    }) */
+    return response.response_success(res, response.OK, mess)
+  } catch (err) {
+    err.file = 'controller/user.js'
+    err.function = 'delete_warehouse_employee'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.delete_transaction_employee = async (req, res) => {
+  try {
+    const transactionSpot = req.transactionSpot
+    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where phone number?')
+    const employee = await User.findOne({phone_number: req.body.phone_number})
+    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'phone no exist')
+    if (!transactionSpot.transaction_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'not your slave')
+    const mess = await User.deleteOne({phone_number: req.body.phone_number})/* .catch((err) => {
+      return response.response_fail(res, response.CONFLICT, err)
+    }) */
+    await TransactionSpot.findByIdAndUpdate(transactionSpot._id, { $pull: {transaction_employees: employee._id}})/* .catch((err) => {
+      return response.response_fail(res, response.CONFLICT, err)
+    }) */
+    return response.response_success(res, response.OK, mess)
+  } catch (err) {
+    err.file = 'controller/user.js'
+    err.function = 'delete_transaction_employee'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }

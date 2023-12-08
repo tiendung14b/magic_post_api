@@ -35,4 +35,10 @@ route.put('/warehouse_employee', auth.authWarehouseManager, userController.updat
 
 route.put('/transaction_employee', auth.authTransactionSpotManager, userController.update_transaction_employee)
 
+route.delete('/user', auth.authDirector, userController.delete_user)
+
+route.delete('/warehouse_employee', auth.authWarehouseManager, userController.delete_warehouse_employee)
+
+route.delete('/transaction_employee', auth.authTransactionSpotManager, userController.delete_transaction_employee)
+
 module.exports = route

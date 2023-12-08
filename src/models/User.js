@@ -30,7 +30,9 @@ const userSchema = new moongoose.Schema({
   phone_number: {
     type: String,
     require: true,
-    unique: true
+    index: {
+      unique: true,
+    }
   },
   password: {
     type: String,

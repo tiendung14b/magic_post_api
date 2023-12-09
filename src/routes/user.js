@@ -12,7 +12,7 @@ route.use(cors({
 route.use(body_parse.json())
 
 // for test
-route.get('/get_token', userController.get_token)
+route.post('/get_token', userController.get_token)
 
 // for test
 route.get('/get_info/:_id', userController.get_info)

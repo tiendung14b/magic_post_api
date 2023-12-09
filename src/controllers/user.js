@@ -25,6 +25,7 @@ exports.get_info = async (req, res) => {
 
 exports.get_token = async (req, res) => {
   try {
+    console.log(req.body)
     const user = req.body
     if (!user.phone_number || !user.password) {
       return response.response_fail(res, response.BAD_REQUEST, 'Missing required fields.')
@@ -301,7 +302,7 @@ exports.delete_user = async (req, res) => {
     }) */
     let mess2 = ''
     if (user.workplace.workplace_id && user.workplace.workplace_name) {
-    A:  switch (user.workplace.workplace_name) {
+      switch (user.workplace.workplace_name) {
         case 'WAREHOUSE':
           const warehouse = await Warehouse.findById(user.workplace.workplace_id)
           if (!warehouse) {mess2 += 'warehouseless?'; break;}
@@ -312,7 +313,7 @@ exports.delete_user = async (req, res) => {
               mess2 += 'remove manager from warehouse'
               break;
             default:
-              if (!warehouse.warehouse_employees.includes(user._id)) {mess2 += 'this user doesnt belong here, identity thief?'; break A;}
+              if (!warehouse.warehouse_employees.includes(user._id)) {mess2 += 'this user doesnt belong here, identity thief?'; break}
               await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: {warehouse_employees: user._id}})/* .catch((err) => {
                 return response.response_fail(res, response.CONFLICT, err)
               }) */
@@ -330,7 +331,7 @@ exports.delete_user = async (req, res) => {
               mess2 += 'remove manager from transactionSpot'
               break;
             default:
-              if (!transactionSpot.transaction_employees.includes(user._id)) {mess2 += 'this user doesnt belong here, identity thief?'; break A;}
+              if (!transactionSpot.transaction_employees.includes(user._id)) {mess2 += 'this user doesnt belong here, identity thief?'; break}
               await TransactionSpot.findByIdAndUpdate(transactionSpot._id, { $pull: {transaction_employees: user._id}})/* .catch((err) => {
                 return response.response_fail(res, response.CONFLICT, err)
               }) */

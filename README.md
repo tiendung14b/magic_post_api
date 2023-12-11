@@ -21,6 +21,37 @@ To rebuild project, use
 
 after new api created, i will write a guide how to use it and update in this readme
 
+format of response
+Success:
+
+```javascript
+{
+  "status": "success"
+  "result": {...}
+}
+```
+
+Fail:
+
+```javascript
+{
+  "status": "fail"
+  "message": "..."
+}
+```
+
+Error:
+
+```javascript
+{
+  "status": "error"
+  "err": {
+    "file": "auth.js"
+    "function": "blabla"
+  }
+}
+```
+
 ## `get_token`
 
 url: /user/get_token\n
@@ -55,8 +86,6 @@ url: /user/get_info/:id
 
 ### `response`:
 
-success
-
 ```javascript
 {
   "status": "success",
@@ -72,14 +101,5 @@ success
     },
     "__v": 0
   }
-}
-```
-
-fail
-
-```javascript
-{
-  "status": "fail",
-  "message": "token expired"
 }
 ```

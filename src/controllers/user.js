@@ -11,10 +11,10 @@ exports.get_info = async (req, res) => {
   try {
     const _id = req.params._id;
     const userData = await User.findById(_id)
-    console.log(userData)
     if (!userData) {
       return response.response_fail(res, response.NOT_FOUND, "invalid id")
     }
+    userData.password = undefined
     return response.response_success(res, response.OK, userData)
   } catch (err) {
     err.file = 'controller/user.js'
@@ -25,7 +25,6 @@ exports.get_info = async (req, res) => {
 
 exports.get_token = async (req, res) => {
   try {
-    console.log(req.body)
     const user = req.body
     if (!user.phone_number || !user.password) {
       return response.response_fail(res, response.BAD_REQUEST, 'Missing required fields.')
@@ -67,7 +66,6 @@ exports.create_manager = async (req, res) => {
       password: hash_password,
       urlAvatar: req.body.urlAvatar
     }
-    console.log(user)
     let hasEmptyField = false
     Object.keys(user).forEach((key) => {
       if (importantFields.includes(key) && !user[key]) {
@@ -82,9 +80,6 @@ exports.create_manager = async (req, res) => {
         return response.response_success(res, response.CREATED, data)
         //mail.send_password('Cấp mật khẩu mới', req.password, user.email)
       })
-      /* .catch((err) => {
-        return response.response_fail(res, response.CONFLICT, err.message)
-      }) */
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'create_warehouse_manager'

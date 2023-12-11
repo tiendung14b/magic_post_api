@@ -208,7 +208,9 @@ exports.update_user = async (req, res) => {
         updateFieldObj[key] = req.body[key]
       }
     })
-    if(req.body.workplace) {updateFieldObj.workplace = {}; Object.keys(req.body.workplace).forEach((key) => {
+    if (req.body.workplace) {
+      updateFieldObj.workplace = {};
+      Object.keys(req.body.workplace).forEach((key) => {
       if (workplaceFields.includes(key) && req.body.workplace[key]) {
         updateFieldObj.workplace[key] = req.body.workplace[key]
       }

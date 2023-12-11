@@ -1,16 +1,11 @@
 const mongoose = require('mongoose');
 
 const WarehouseSchema = new mongoose.Schema({
-  warehouse_name: {
+  name: {
     type: String,
   },
   location: {
     type: String,
-  },
-  warehouse_id: {
-    type: String,
-    required: true,
-    unique: true,
   },
   transaction_spots: [{
     type: mongoose.Schema.Types.ObjectId,

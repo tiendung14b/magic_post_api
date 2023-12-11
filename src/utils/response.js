@@ -19,6 +19,7 @@ exports.response_success = (res, status_code, data) => {
 exports.response_error = (res, status_code, error) => {
   return res.status(status_code).json({
     status: 'error',
+    location: error.file + ' -> ' + error.function,
     message: error.message
   });
 }

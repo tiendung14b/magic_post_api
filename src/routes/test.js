@@ -17,9 +17,13 @@ route.use(cors({
   
 route.use(body_parse.json())
 
-route.post('/doSomething', async (req, res) => {
+route.post('/doSomething', auth.authWarehouseManager, async (req, res) => {
     try {
-        auth.authWarehouseManager();
+        const warehouse = req.warehouse
+        await Warehouse.updateOne({_id: warehouse._id}, { $addToSet: {warehouse_employees: "656df0871d50d8be529c836a"}}, null).catch((err) => {
+            response.response_fail(res, response.CONFLICT, err)
+          })
+        response.response_success(res, response.CREATED, "You did it")
     } catch (err) {
         response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
     }

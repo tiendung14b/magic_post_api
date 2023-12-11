@@ -23,7 +23,7 @@ after new api created, i will write a guide how to use it and update in this rea
 
 ## `get_token`
 
-url: baseurl/user/get_token
+url: /user/get_token\n
 body:
 
 ```javascript
@@ -37,11 +37,49 @@ response:
 
 ```javascript
 {
-  "_id": ObjectId
-  "workplace": {
-    "workplace_name": String
-    "workplace_id": ObjectId
-    "role": String
+  "status": "success"
+  "result": {
+    "_id": ObjectId
+    "workplace": {
+      "workplace_name": String
+      "workplace_id": ObjectId
+      "role": String
+    }
   }
+}
+```
+
+## `get_info`
+
+url: /user/get_info/:id
+
+### `response`:
+
+success
+
+```javascript
+{
+  "status": "success",
+  "result": {
+    "_id": "656d582c883ff1fbdf1dee4e",
+    "last_name": "Dung",
+    "first_name": "Tien",
+    "email": "21021463@vnu.edu.vn",
+    "phone_number": "123",
+    "workplace": {
+      "role": "DIRECTOR",
+      "_id": "656d582c883ff1fbdf1dee4f"
+    },
+    "__v": 0
+  }
+}
+```
+
+fail
+
+```javascript
+{
+  "status": "fail",
+  "message": "token expired"
 }
 ```

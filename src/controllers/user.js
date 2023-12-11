@@ -39,7 +39,7 @@ exports.get_token = async (req, res) => {
     const access_token = jwt.sign({
       _id: dataUser._id,
       workplace: dataUser.workplace,
-    }, process.env.JWT_SECRET, { expiresIn: '1h' })
+    }, process.env.JWT_SECRET, { expiresIn: '24h' })
     return response.response_success(res, response.OK, { access_token: access_token })
   } catch (err) {
     err.file = 'controller/user.js'

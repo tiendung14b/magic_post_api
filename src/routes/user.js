@@ -21,6 +21,8 @@ route.get('/get_info/:_id', auth.authToken, userController.get_info)
 
 // route.post('/create_transaction_manager', auth.authDirector)
 
+route.get('/get_list_manager', auth.authDirector, userController.get_all_manager)
+
 route.post('/manager', auth.authDirector, userController.create_manager)
 
 route.post('/warehouse_employee', auth.authWarehouseManager, userController.create_warehouse_employee)

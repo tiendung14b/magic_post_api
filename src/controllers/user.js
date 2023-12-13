@@ -23,6 +23,19 @@ exports.get_info = async (req, res) => {
   }       
 }
 
+exports.get_all_manager = async (req, res) => {
+  try {
+    const users = await User.find({})
+    response.response_success(res, response.OK, users)
+    console.log("Sucess")
+  } catch (err) {
+    err.file = 'controller/user.js'
+    err.function = 'get_all_manager'
+    console.log("error")
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
 exports.get_token = async (req, res) => {
   try {
     const user = req.body

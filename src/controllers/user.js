@@ -25,7 +25,7 @@ exports.get_info = async (req, res) => {
 
 exports.get_all_manager = async (req, res) => {
   try {
-    const users = await User.find({})
+    const users = await User.find({ 'workplace.role': { $in: [role.WAREHOUSE_MANAGER, role.TRANSACTION_MANAGER] } })
     response.response_success(res, response.OK, users)
     console.log("Sucess")
   } catch (err) {
@@ -72,9 +72,9 @@ exports.create_manager = async (req, res) => {
       email: req.body.email,
       phone_number: req.body.phone_number,
       workplace: {
-        workplace_name: req.body.workplace.workplace_name,
-        workplace_id: req.body.workplace.workplace_id,
-        role: req.body.workplace.role
+        workplace_name: req.body.workplace?.workplace_name,
+        workplace_id: req.body.workplace?.workplace_id,
+        role: req.body.workplace?.role
       },
       password: hash_password,
       urlAvatar: req.body.urlAvatar
@@ -85,14 +85,11 @@ exports.create_manager = async (req, res) => {
         hasEmptyField = true
       }
     })
-    if (hasEmptyField) {
+    if (hasEmptyField || !user.workplace.role) {
       return response.response_fail(res, response.BAD_REQUEST, 'Missing required fields.')
     }
-    User.create(user)
-      .then((data) => {
-        return response.response_success(res, response.CREATED, data)
-        //mail.send_password('Cấp mật khẩu mới', req.password, user.email)
-      })
+    await User.create(user)
+    mail.send_password('Cấp mật khẩu mới', req.password, user.email)
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'create_warehouse_manager'

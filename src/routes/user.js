@@ -25,6 +25,8 @@ route.get('/get_list_manager', auth.authDirector, userController.get_all_manager
 
 route.post('/manager', auth.authDirector, userController.create_manager)
 
+route.get('/manager', auth.authDirector, userController.get_all_manager)
+
 route.post('/warehouse_employee', auth.authWarehouseManager, userController.create_warehouse_employee)
 
 route.post('/transaction_employee', auth.authTransactionSpotManager, userController.create_transaction_employee)

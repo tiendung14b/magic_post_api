@@ -9,7 +9,6 @@ const TransactionSpot = require('../models/TransactionSpot')
 
 exports.authDirector = (req, res, next) => {
   const token = req.headers.access_token
-  console.log(token)
   if (!token)
     return response.response_fail(res, response.UNAUTHORIZED, 'unauthorized')
   try {

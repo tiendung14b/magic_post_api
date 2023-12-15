@@ -1,6 +1,7 @@
 const User = require('../models/User')
 const Warehouse = require('../models/Warehouse')
 const TransactionSpot = require('../models/TransactionSpot')
+const Deliver = require('../models/Deliver')
 const response = require('../utils/response')
 const role = require('../utils/role')
 const jwt = require('jsonwebtoken')
@@ -27,11 +28,9 @@ exports.get_all_manager = async (req, res) => {
   try {
     const users = await User.find({ 'workplace.role': { $in: [role.WAREHOUSE_MANAGER, role.TRANSACTION_MANAGER] } })
     response.response_success(res, response.OK, users)
-    console.log("Sucess")
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'get_all_manager'
-    console.log("error")
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
@@ -299,7 +298,7 @@ exports.update_transaction_employee = async (req, res) => {
   }
 }
 
-exports.delete_user = async (req, res) => {
+exports.delete_user_2 = async (req, res) => {
   try {
     if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where phone number?')
     const user = await User.findOne({phone_number: req.body.phone_number})
@@ -350,6 +349,32 @@ exports.delete_user = async (req, res) => {
     } else mess2 += 'homeless?'
     mess1.message = mess2
     return response.response_success(res, response.OK, mess1)
+  } catch (err) {
+    err.file = 'controller/user.js'
+    err.function = 'delete_user'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.delete_user = async (req, res) => {
+  try {
+    if (!req.params.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
+    const user = await User.findById(req.params.user_id)
+    if (!user) return response.response_fail(res, response.NOT_FOUND, 'User not found')
+    const workplace = user.workplace
+    await User.deleteOne({ _id: req.params.user_id })
+    if (!workplace) return response.response_success(res, response.OK, 'Delete user successfully')
+    // remove user from workplace follow role
+    if (workplace.role == role.WAREHOUSE_EMPLOYEE) {
+      await Warehouse.findByIdAndUpdate(workplace.workplace_id, { $pull: { warehouse_employees: req.params.user_id } })
+    } else if (workplace.role == role.TRANSACTION_EMPLOYEE) {
+      await TransactionSpot.findByIdAndUpdate(workplace.workplace_id, { $pull: { transaction_employees: req.params.user_id } })
+    } else if (workplace.role == role.WAREHOUSE_MANAGER) {
+      await Warehouse.findByIdAndUpdate(workplace.workplace_id, { warehouse_manager: null })
+    } else if (workplace.role == role.TRANSACTION_MANAGER) {
+      await TransactionSpot.findByIdAndUpdate(workplace.workplace_id, { transaction_manager: null })
+    }
+    return response.response_success(res, response.OK, 'Delete user successfully')
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'delete_user'

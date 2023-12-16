@@ -42,8 +42,6 @@ exports.authWarehouseManager = async (req, res, next) => {
       if (warehouse.warehouse_manager != user._id) {
         return response.response_fail(res, response.FORBIDDEN, 'forbidden request')
       }
-      // const warehouse = await Warehouse.findOne({ warehouse_manager: user._id })
-      // if (!warehouse) return response.response_fail(res, response.NOT_FOUND, 'manager is warehouseless')
       req.user = user
       req.warehouse = warehouse
       next()

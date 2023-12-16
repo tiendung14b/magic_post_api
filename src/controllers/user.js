@@ -89,6 +89,7 @@ exports.create_manager = async (req, res) => {
     }
     await User.create(user)
     mail.send_password('Cấp mật khẩu mới', req.password, user.email)
+    return response.response_success(res, response.CREATED, user)
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'create_warehouse_manager'
@@ -358,11 +359,15 @@ exports.delete_user_2 = async (req, res) => {
 
 exports.delete_user = async (req, res) => {
   try {
-    if (!req.params.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
+    if (!req.params.user_id) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
+    }
     const user = await User.findById(req.params.user_id)
-    if (!user) return response.response_fail(res, response.NOT_FOUND, 'User not found')
-    const workplace = user.workplace
+    if (!user) {
+      return response.response_fail(res, response.NOT_FOUND, 'User not found')
+    }
     await User.deleteOne({ _id: req.params.user_id })
+    const workplace = user.workplace
     if (!workplace) return response.response_success(res, response.OK, 'Delete user successfully')
     // remove user from workplace follow role
     if (workplace.role == role.WAREHOUSE_EMPLOYEE) {
@@ -378,6 +383,22 @@ exports.delete_user = async (req, res) => {
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'delete_user'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+const delete_manager = async (req, res) => {
+  try {
+    const user = req.user
+    if (!user) return response.response_fail(res, response.NOT_FOUND, 'User not found')
+    if (user.workplace.role != role.WAREHOUSE_MANAGER && user.workplace.role != role.TRANSACTION_MANAGER) {
+      return response.response_fail(res, response.UNAUTHORIZED, 'you are not manager')
+    }
+    await User.deleteOne({phone_number: req.body.phone_number})
+    return response.response_success(res, response.OK, 'Delete user successfully')
+  } catch (err) {
+    err.file = 'controller/user.js'
+    err.function = 'delete_manager'
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }

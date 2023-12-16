@@ -23,9 +23,7 @@ route.get('/get_info/:_id', auth.authToken, userController.get_info)
 
 route.get('/get_list_manager', auth.authDirector, userController.get_all_manager)
 
-route.post('/manager', auth.authDirector, userController.create_manager)
-
-route.get('/manager', auth.authDirector, userController.get_all_manager)
+route.post('/create_manager', auth.authDirector, userController.create_manager)
 
 route.post('/warehouse_employee', auth.authWarehouseManager, userController.create_warehouse_employee)
 
@@ -39,7 +37,7 @@ route.put('/warehouse_employee', auth.authWarehouseManager, userController.updat
 
 route.put('/transaction_employee', auth.authTransactionSpotManager, userController.update_transaction_employee)
 
-route.delete('/user', auth.authDirector, userController.delete_user)
+route.delete('/:user_id', auth.authDirector, userController.delete_user)
 
 route.delete('/warehouse_employee', auth.authWarehouseManager, userController.delete_warehouse_employee)
 

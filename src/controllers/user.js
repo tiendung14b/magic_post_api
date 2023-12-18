@@ -8,6 +8,38 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const mail = require('../utils/mail')
 
+exports.create_director = async (req, res) => {
+  try {
+    const {
+      last_name,
+      first_name,
+      email,
+      phone_number,
+      password,
+      urlAvatar
+    } = req.body
+    const hash_password = await bcrypt.hash(password, 10)
+    const user = {
+      last_name,
+      first_name,
+      email,
+      phone_number,
+      password: hash_password,
+      urlAvatar
+    }
+    user.workplace = {
+      workplace_name: 'DIRECTOR',
+      role: 'DIRECTOR'
+    }
+    await User.create(user)
+    return response.response_success(res, response.CREATED, user)
+  } catch (err) {
+    err.file = 'controller/user.js'
+    err.function = 'creat_director'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
 exports.get_info = async (req, res) => {
   try {
     const _id = req.params._id;
@@ -43,8 +75,7 @@ exports.get_token = async (req, res) => {
     }
     const dataUser = await User.findOne({ phone_number: user.phone_number })
     if (!dataUser) return response.response_fail(res, response.NOT_FOUND, 'Account not exist!')
-    // const match = await bcrypt.compare(user.password, dataUser.password)
-    const match = (dataUser.password == user.password) 
+    const match = await bcrypt.compare(user.password, dataUser.password)
     if (!match) return response.response_fail(res, response.NOT_FOUND, 'Password is incorrect.')
     //  token includes 3 fields: _id, role, work_place
     //  client will decide what to do with role and load data from workplace
@@ -213,27 +244,12 @@ exports.update_password = async (req, res) => {
 
 exports.update_user = async (req, res) => {
   try {
-    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where phone number?')
-    const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']
-    const workplaceFields = ['workplace_name', 'workplace_id', 'role']
-    let updateFieldObj = {}
-    Object.keys(req.body).forEach((key) => {
-      if (userModelFields.includes(key) && req.body[key]) {
-        updateFieldObj[key] = req.body[key]
-      }
-    })
-    if (req.body.workplace) {
-      updateFieldObj.workplace = {};
-      Object.keys(req.body.workplace).forEach((key) => {
-      if (workplaceFields.includes(key) && req.body.workplace[key]) {
-        updateFieldObj.workplace[key] = req.body.workplace[key]
-      }
-    })}
-    //console.log(updateFieldObj);
-    const mess = await User.updateOne({phone_number: req.body.phone_number}, updateFieldObj)/* .catch((err) => {
-      return response.response_fail(res, response.CONFLICT, err)
-    }) */
-    return response.response_success(res, response.OK, mess)
+    if (!req.params.id) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: id')
+    }
+    console.log(req.body);
+    await User.updateOne({ _id: req.params.id }, req.body)
+    return response.response_success(res, response.OK, "Update user successfully")
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'update_user'
@@ -287,7 +303,9 @@ exports.update_transaction_employee = async (req, res) => {
         updateFieldObj[key] = req.body[key]
       }
     })
-    if(req.body.workplace) {updateFieldObj.workplace = {}; Object.keys(req.body.workplace).forEach((key) => {
+    if (req.body.workplace) {
+      updateFieldObj.workplace = {}; 
+      Object.keys(req.body.workplace).forEach((key) => {
       if (workplaceFields.includes(key) && req.body.workplace[key]) {
         updateFieldObj.workplace[key] = req.body.workplace[key]
       }

@@ -25,7 +25,7 @@ exports.send_password = async (subject, content, email_target) => {
       subject: subject,
       html: `
         <p>Chào bạn,</p>
-        <p>Mật khẩu mới của bạn là: <b>'+ ${content} + '</b></p>
+        <p>Mật khẩu mới của bạn là: <b>${content}</b></p>
         <p>Trân trọng,</p>
         <p>Magic Post</p>
         <img src="https://i.imgur.com/ctJvI6P.jpg" />`,

@@ -48,7 +48,7 @@ const userSchema = new moongoose.Schema({
   workplace: {
     type: workplaceSchema,
   },
-  urlAvatar: String
+  url_avatar: String
 })
 
 module.exports = moongoose.model('User', userSchema)

@@ -196,7 +196,9 @@ exports.update_password = async (req, res) => {
 
 exports.update_user = async (req, res) => {
   try {
-    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where is phone number?')
+    if (!req.body.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Where is user id?')
+    const user = await User.findById(req.body.user_id)
+    if (!user) return response.response_fail(res, response.NOT_FOUND, 'user doesn\'t exist')
     const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']
     let updateFieldObj = {}
     Object.keys(req.body).forEach((key) => {
@@ -207,9 +209,7 @@ exports.update_user = async (req, res) => {
     const checkResult = usefulStuff.checkField(updateFieldObj)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
     //console.log(updateFieldObj);
-    const mess = await User.updateOne({phone_number: req.body.phone_number}, updateFieldObj)/* .catch((err) => {
-      return response.response_fail(res, response.CONFLICT, err)
-    }) */
+    const mess = await User.findByIdAndUpdate(user._id, updateFieldObj)
     return response.response_success(res, response.OK, mess)
   } catch (err) {
     err.file = 'controller/user.js'
@@ -221,9 +221,10 @@ exports.update_user = async (req, res) => {
 exports.update_warehouse_employee = async (req, res) => {
   try {
     const warehouse = req.warehouse
-    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where is phone number?')
-    const employee = await User.findOne({phone_number: req.body.phone_number})
-    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'phone number doesn\'t exist')
+    if (!warehouse) return response.response.response_fail(res, response.response.INTERNAL_SERVER_ERROR, 'middleware error: missing warehouse object')
+    if (!req.body.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Where is user if?')
+    const employee = await User.findById(req.body.user_id)
+    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'user doesn\'t exist')
     if (!warehouse.warehouse_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'this employee isn\'t in this warehouse')
     const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']
     let updateFieldObj = {}
@@ -234,9 +235,7 @@ exports.update_warehouse_employee = async (req, res) => {
     })
     const checkResult = usefulStuff.checkField(updateFieldObj)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
-    const mess = await User.updateOne({phone_number: req.body.phone_number}, updateFieldObj)/* .catch((err) => {
-      return response.response_fail(res, response.CONFLICT, err)
-    }) */
+    const mess = await User.findByIdAndUpdate(employee._id, updateFieldObj)
     return response.response_success(res, response.OK, mess)
   } catch (err) {
     err.file = 'controller/user.js'
@@ -248,9 +247,10 @@ exports.update_warehouse_employee = async (req, res) => {
 exports.update_transaction_employee = async (req, res) => {
   try {
     const transactionSpot = req.transactionSpot
-    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where is phone number?')
-    const employee = await User.findOne({phone_number: req.body.phone_number})
-    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'phone number doesn\'t exist')
+    if (!transactionSpot) return response.response.response_fail(res, response.response.INTERNAL_SERVER_ERROR, 'middleware error: missing transaction spot object')
+    if (!req.body.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Where is user id?')
+    const employee = await User.findById(req.body.user_id)
+    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'user doesn\'t exist')
     if (!transactionSpot.transaction_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'this employee isn\'t in this transaction spot')
     const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']
     let updateFieldObj = {}
@@ -261,9 +261,7 @@ exports.update_transaction_employee = async (req, res) => {
     })
     const checkResult = usefulStuff.checkField(updateFieldObj)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
-    const mess = await User.updateOne({phone_number: req.body.phone_number}, updateFieldObj)/* .catch((err) => {
-      return response.response_fail(res, response.CONFLICT, err)
-    }) */
+    const mess = await User.findByIdAndUpdate(employee._id, updateFieldObj)
     return response.response_success(res, response.OK, mess)
   } catch (err) {
     err.file = 'controller/user.js'

@@ -42,8 +42,6 @@ exports.authWarehouseManager = async (req, res, next) => {
       if (warehouse.warehouse_manager != user._id) {
         return response.response_fail(res, response.FORBIDDEN, 'forbidden request')
       }
-      // const warehouse = await Warehouse.findOne({ warehouse_manager: user._id })
-      // if (!warehouse) return response.response_fail(res, response.NOT_FOUND, 'manager is warehouseless')
       req.user = user
       req.warehouse = warehouse
       next()
@@ -159,8 +157,11 @@ exports.authToken = (req, res, next) => {
   try {
     let user = undefined
     jwt.verify(token, process.env.JWT_SECRET, async (err, payload) => {
-      if (!err) user = payload
-      if (!user._id) return response.response_fail(res, response.UNAUTHORIZED, 'sumthin wong with yo ID')
+      if (err) {
+        return response.response_fail(res, response.UNAUTHORIZED, 'token expired')
+      }
+      user = payload
+      if (!user) return response.response_fail(res, response.UNAUTHORIZED, 'sumthin wong with yo ID')
       req.user = payload
       next()
     })

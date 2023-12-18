@@ -1,6 +1,7 @@
 const User = require('../models/User')
 const Warehouse = require('../models/Warehouse')
 const TransactionSpot = require('../models/TransactionSpot')
+const Deliver = require('../models/Deliver')
 const response = require('../utils/response')
 const role = require('../utils/role')
 const jwt = require('jsonwebtoken')
@@ -24,6 +25,17 @@ exports.get_info = async (req, res) => {
   }       
 }
 
+exports.get_all_manager = async (req, res) => {
+  try {
+    const users = await User.find({ 'workplace.role': { $in: [role.WAREHOUSE_MANAGER, role.TRANSACTION_MANAGER] } })
+    response.response_success(res, response.OK, users)
+  } catch (err) {
+    err.file = 'controller/user.js'
+    err.function = 'get_all_manager'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
 exports.get_token = async (req, res) => {
   try {
     const user = req.body
@@ -40,7 +52,7 @@ exports.get_token = async (req, res) => {
     const access_token = jwt.sign({
       _id: dataUser._id,
       workplace: dataUser.workplace,
-    }, process.env.JWT_SECRET, { expiresIn: '1h' })
+    }, process.env.JWT_SECRET, { expiresIn: '24h' })
     return response.response_success(res, response.OK, { access_token: access_token })
   } catch (err) {
     err.file = 'controller/user.js'
@@ -51,6 +63,10 @@ exports.get_token = async (req, res) => {
 
 exports.create_manager = async (req, res) => {
   try {
+    const existData = await User.findOne({ phone_number: req.body.phone_number })
+    if (existData) {
+      return response.response_fail(res, response.CONFLICT, 'Phone number already exist.')
+    }
     req.password = (Math.random() + 1).toString(36).substring(6)
     const hash_password = await bcrypt.hash(req.password, 10)
     const importantFields = ['last_name', 'first_name', 'email', 'phone_number', 'role']
@@ -71,8 +87,8 @@ exports.create_manager = async (req, res) => {
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
     User.create(user)
       .then((data) => {
-        return response.response_success(res, response.CREATED, data)
         //mail.send_password('Cấp mật khẩu mới', req.password, user.email)
+        return response.response_success(res, response.CREATED, data)
       })
   } catch (err) {
     err.file = 'controller/user.js'
@@ -256,60 +272,24 @@ exports.update_transaction_employee = async (req, res) => {
   }
 }
 
-exports.delete_user = async (req, res) => {
+exports.delete_manager = async (req, res) => {
   try {
-    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where phone number?')
-    const user = await User.findOne({phone_number: req.body.phone_number})
-    if (!user) return response.response_fail(res, response.NOT_FOUND, 'phone no exist')
-    const mess1 = await User.deleteOne({phone_number: req.body.phone_number})/* .catch((err) => {
-      return response.response_fail(res, response.CONFLICT, err)
-    }) */
-    let mess2 = ''
-    if (user.workplace.workplace_id && user.workplace.workplace_name) {
-      switch (user.workplace.workplace_name) {
-        case 'WAREHOUSE':
-          const warehouse = await Warehouse.findById(user.workplace.workplace_id)
-          if (!warehouse) {mess2 += 'warehouseless?'; break;}
-          switch (user.workplace.role) {
-            case 'WAREHOUSE_MANAGER':
-              if (!warehouse.warehouse_manager.equals(user._id)) {mess2 += 'not manager, identity thief?'; break;}
-              await Warehouse.findByIdAndUpdate(warehouse._id, {warehouse_manager: "000000000000000000000000"})
-              mess2 += 'remove manager from warehouse'
-              break;
-            default:
-              if (!warehouse.warehouse_employees.includes(user._id)) {mess2 += 'this user doesnt belong here, identity thief?'; break}
-              await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: {warehouse_employees: user._id}})/* .catch((err) => {
-                return response.response_fail(res, response.CONFLICT, err)
-              }) */
-              mess2 += 'remove employee from warehouse'
-              break;
-          }
-          break;
-        case 'TRANSACTION':
-          const transactionSpot = await TransactionSpot.findById(user.workplace.workplace_id)
-          if (!transactionSpot) {mess2 += 'transactionSpotless?'; break;}
-          switch (user.workplace.role) {
-            case 'TRANSACTION_MANAGER':
-              if (!transactionSpot.transaction_manager.equals(user._id)) {mess2 += 'not manager, identity thief?'; break;}
-              await TransactionSpot.findByIdAndUpdate(transactionSpot._id, {transaction_manager: "000000000000000000000000"})
-              mess2 += 'remove manager from transactionSpot'
-              break;
-            default:
-              if (!transactionSpot.transaction_employees.includes(user._id)) {mess2 += 'this user doesnt belong here, identity thief?'; break}
-              await TransactionSpot.findByIdAndUpdate(transactionSpot._id, { $pull: {transaction_employees: user._id}})/* .catch((err) => {
-                return response.response_fail(res, response.CONFLICT, err)
-              }) */
-              mess2 += 'remove employee from transactionSpot'
-              break;
-          }
-          break;
-      }
-    } else mess2 += 'homeless?'
-    mess1.message = mess2
-    return response.response_success(res, response.OK, mess1)
+    if (!req.params.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
+    const user = await User.findById(req.params.user_id)
+    if (!user) {
+      return response.response_fail(res, response.NOT_FOUND, 'User doesn\'t exist')
+    }
+    await User.deleteOne({ _id: req.params.user_id })
+    // remove user from workplace follow role
+    if (user.workplace.role == role.WAREHOUSE_MANAGER) {
+      await Warehouse.findByIdAndUpdate(user.workplace.workplace_id, { warehouse_manager: null })
+    } else if (user.workplace.role == role.TRANSACTION_MANAGER) {
+      await TransactionSpot.findByIdAndUpdate(user.workplace.workplace_id, { transaction_manager: null })
+    }
+    return response.response_success(res, response.OK, 'Delete user successfully')
   } catch (err) {
     err.file = 'controller/user.js'
-    err.function = 'delete_user'
+    err.function = 'delete_manager'
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
@@ -317,18 +297,16 @@ exports.delete_user = async (req, res) => {
 exports.delete_warehouse_employee = async (req, res) => {
   try {
     const warehouse = req.warehouse
-    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where is phone number?')
-    const employee = await User.findOne({phone_number: req.body.phone_number})
-    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'phone number doens\'t exist')
+    if (!warehouse) return response.response.response_fail(res, response.response.INTERNAL_SERVER_ERROR, 'middleware error: missing warehouse object')
+    const user_id = req.params.user_id
+    if (!user_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
+    const employee = await User.findById(user_id)
+    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'employee doens\'t exist')
     if (!warehouse.warehouse_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'this employee isn\'t in this warehouse')
-    const mess = await User.deleteOne({phone_number: req.body.phone_number})/* .catch((err) => {
-      return response.response_fail(res, response.CONFLICT, err)
-    }) */
-    await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: {warehouse_employees: employee._id}})/* .catch((err) => {
-      return response.response_fail(res, response.CONFLICT, err)
-    }) */
+    const mess = await User.findByIdAndDelete(employee._id)
+    await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: {warehouse_employees: employee._id}})
     return response.response_success(res, response.OK, mess)
-  } catch (err) {
+  } catch (err) {s
     err.file = 'controller/user.js'
     err.function = 'delete_warehouse_employee'
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
@@ -338,16 +316,14 @@ exports.delete_warehouse_employee = async (req, res) => {
 exports.delete_transaction_employee = async (req, res) => {
   try {
     const transactionSpot = req.transactionSpot
-    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where is phone number?')
-    const employee = await User.findOne({phone_number: req.body.phone_number})
-    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'phone number doens\'t exist')
+    if (!transactionSpot) return response.response.response_fail(res, response.response.INTERNAL_SERVER_ERROR, 'middleware error: missing transaction spot object')
+    const user_id = req.params.user_id
+    if (!user_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
+    const employee = await User.findById(user_id)
+    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'employee doens\'t exist')
     if (!transactionSpot.transaction_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'this employee isn\'t in this transaction spot')
-    const mess = await User.deleteOne({phone_number: req.body.phone_number})/* .catch((err) => {
-      return response.response_fail(res, response.CONFLICT, err)
-    }) */
-    await TransactionSpot.findByIdAndUpdate(transactionSpot._id, { $pull: {transaction_employees: employee._id}})/* .catch((err) => {
-      return response.response_fail(res, response.CONFLICT, err)
-    }) */
+    const mess = await User.findByIdAndDelete(employee._id)
+    await TransactionSpot.findByIdAndUpdate(transactionSpot._id, { $pull: {transaction_employees: employee._id}})
     return response.response_success(res, response.OK, mess)
   } catch (err) {
     err.file = 'controller/user.js'

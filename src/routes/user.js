@@ -15,13 +15,15 @@ route.use(body_parse.json())
 route.post('/get_token', userController.get_token)
 
 // for test
-route.get('/get_info/:_id', userController.get_info)
+route.get('/get_info/:_id', auth.authToken, userController.get_info)
 
 // route.post('/create_warehouse_manager', auth.authDirector, userController.create_warehouse_manager)
 
 // route.post('/create_transaction_manager', auth.authDirector)
 
-route.post('/manager', auth.authDirector, userController.create_manager)
+route.get('/get_list_manager', auth.authDirector, userController.get_all_manager)
+
+route.post('/create_manager', auth.authDirector, userController.create_manager)
 
 route.post('/warehouse_employee', auth.authWarehouseManager, userController.create_warehouse_employee)
 
@@ -35,10 +37,10 @@ route.put('/warehouse_employee', auth.authWarehouseManager, userController.updat
 
 route.put('/transaction_employee', auth.authTransactionSpotManager, userController.update_transaction_employee)
 
-route.delete('/user', auth.authDirector, userController.delete_user)
+route.delete('/manager/:user_id', auth.authDirector, userController.delete_manager)
 
-route.delete('/warehouse_employee', auth.authWarehouseManager, userController.delete_warehouse_employee)
+route.delete('/warehouse_employee/:user_id', auth.authWarehouseManager, userController.delete_warehouse_employee)
 
-route.delete('/transaction_employee', auth.authTransactionSpotManager, userController.delete_transaction_employee)
+route.delete('/transaction_employee/:user_id', auth.authTransactionSpotManager, userController.delete_transaction_employee)
 
 module.exports = route

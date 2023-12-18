@@ -6,6 +6,9 @@ const workplaceSchema = new moongoose.Schema({
     type: String,
     enum: ["DIRECTOR", "WAREHOUSE", "TRANSACTION"]
   },
+  join_at: {
+    type: Date,
+  },
   workplace_id: mongoose.Schema.Types.ObjectId,
   role: {
     type: String,
@@ -30,7 +33,13 @@ const userSchema = new moongoose.Schema({
   phone_number: {
     type: String,
     require: true,
-    unique: true
+    index: {
+      unique: true,
+    }
+  },
+  create_at: {
+    type: Date,
+    default: Date.now
   },
   password: {
     type: String,

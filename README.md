@@ -32,16 +32,10 @@ body:
   "password": String
 }
 ```
-
-response:
+response: encrypted using JWT, put this in header of subsequent request for successful authentication
 
 ```javascript
 {
-  "_id": ObjectId
-  "workplace": {
-    "workplace_name": String
-    "workplace_id": ObjectId
-    "role": String
-  }
+  "access_token": String
 }
 ```

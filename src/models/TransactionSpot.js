@@ -52,7 +52,7 @@ const transactionSpotSchema = new mongoose.Schema({
     ref: 'User',
   }],
   // transaction from client
-  shipment_transactions: [{
+  from_client_transactions: [{
     type: mongoose.Schema.Types.ObjectId
   }],
   // transaction from warehouse
@@ -60,13 +60,10 @@ const transactionSpotSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId
   }],
   // trannsaction after confirm
-  confirm_transactions: [{
+  to_client_transactions: [{
     type: mongoose.Schema.Types.ObjectId
-  }],
-  sending_transactions: [{
-    type: mongoose.Schema.Types.ObjectId
-  }],
-  transaction_histories: [{
+  }], 
+  sending_history: [{
     type: mongoose.Schema.Types.ObjectId
   }],
   success_transactions: [{

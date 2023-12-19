@@ -63,11 +63,12 @@ body:
   "password": String
 }
 ```
-
-response:
+response: encrypted using JWT, put access_token in header of subsequent request for successful authentication
 
 ```javascript
 {
+  "access_token": String
+  ------------------------------
   "status": "success"
   "result": {
     "_id": ObjectId
@@ -84,7 +85,7 @@ response:
 
 GET /user/get_info/:id
 
-`response`:
+response:
 
 ```javascript
 {
@@ -103,6 +104,17 @@ GET /user/get_info/:id
     },
     "__v": 0
   }
+}
+```
+## `user::get_all_manager`
+
+GET /user/get_list_manager
+
+response:
+
+```javascript
+{
+  //list of manager documents
 }
 ```
 
@@ -184,9 +196,41 @@ Require user token
 ## `user::update_user`
 
 PUT user/user
-require user token
+require director token
 
 ```javascript
 {
 }
 ```
+## `user::update_warehouse_employee`
+
+PUT user/warehouse_employee
+require warehouse manager token, user_id in request body
+
+request body: 
+
+```javascript
+{
+  'user_id': ObjectId,
+  'field that want changing': 'some value'
+}
+```
+
+response: the old document of warehouse
+
+## `user::update_transaction_employee`
+
+PUT user/transaction_employee
+require transaction spot manager token, user_id in request body
+
+request body: 
+
+```javascript
+{
+  'user_id': ObjectId,
+  'field that want changing': 'some value'
+}
+```
+
+response: the old document of transaction spot
+

@@ -31,11 +31,11 @@ route.post('/transaction_employee', auth.authTransactionSpotManager, userControl
 
 route.put('/password', auth.authToken, userController.update_password)
 
+route.put('/warehouse_employee/:user_id', auth.authWarehouseManager, userController.update_warehouse_employee)
+
+route.put('/transaction_employee/:user_id', auth.authTransactionSpotManager, userController.update_transaction_employee)
+
 route.put('/:id', userController.update_user)
-
-route.put('/warehouse_employee', auth.authWarehouseManager, userController.update_warehouse_employee)
-
-route.put('/transaction_employee', auth.authTransactionSpotManager, userController.update_transaction_employee)
 
 route.delete('/manager/:user_id', auth.authDirector, userController.delete_manager)
 

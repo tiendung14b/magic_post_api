@@ -7,6 +7,7 @@ const role = require('../utils/role')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const mail = require('../utils/mail')
+const usefulStuff = require('../utils/usefulStuff')
 
 exports.create_director = async (req, res) => {
   try {
@@ -113,18 +114,13 @@ exports.create_manager = async (req, res) => {
       password: hash_password,
       urlAvatar: req.body.urlAvatar
     }
-    let hasEmptyField = false
-    Object.keys(user).forEach((key) => {
-      if (importantFields.includes(key) && !user[key]) {
-        hasEmptyField = true
-      }
-    })
-    if (hasEmptyField || !user.workplace.role) {
-      return response.response_fail(res, response.BAD_REQUEST, 'Missing required fields.')
-    }
-    await User.create(user)
-    mail.send_password('Cấp mật khẩu mới', req.password, user.email)
-    return response.response_success(res, response.CREATED, user)
+    const checkResult = usefulStuff.checkField(user)
+    if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
+    User.create(user)
+      .then((data) => {
+        //mail.send_password('Cấp mật khẩu mới', req.password, user.email)
+        return response.response_success(res, response.CREATED, data)
+      })
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'create_warehouse_manager'
@@ -138,7 +134,6 @@ exports.create_warehouse_employee = async (req, res) => {
     /* if(!warehouse) return response.response_error(res, response.INTERNAL_SERVER_ERROR, err) */
     req.password = (Math.random() + 1).toString(36).substring(6)
     const hash_password = await bcrypt.hash(req.password, 10)
-    const importantFields = ['last_name', 'first_name', 'email', 'phone_number', 'role']
     const user = {
       last_name: req.body.last_name,
       first_name: req.body.first_name,
@@ -152,15 +147,8 @@ exports.create_warehouse_employee = async (req, res) => {
       password: hash_password,
       urlAvatar: req.body.urlAvatar
     }
-    let hasEmptyField = false
-    Object.keys(user).forEach((key) => {
-      if (importantFields.includes(key) && !user[key]) {
-        hasEmptyField = true
-      }
-    })
-    if (hasEmptyField) {
-      return response.response_fail(res, response.BAD_REQUEST, 'Missing required fields.')
-    }
+    const checkResult = usefulStuff.checkField(user)
+    if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
     const newUser = await User.create(user)
       .then((data) => {
         //mail.send_password('Cấp mật khẩu mới', req.password, user.email)
@@ -186,7 +174,6 @@ exports.create_transaction_employee = async (req, res) => {
     /* if(!transactionSpot) return response.response_error(res, response.INTERNAL_SERVER_ERROR, err) */
     req.password = (Math.random() + 1).toString(36).substring(6)
     const hash_password = await bcrypt.hash(req.password, 10)
-    const importantFields = ['last_name', 'first_name', 'email', 'phone_number', 'role']
     const user = {
       last_name: req.body.last_name,
       first_name: req.body.first_name,
@@ -200,15 +187,8 @@ exports.create_transaction_employee = async (req, res) => {
       password: hash_password,
       urlAvatar: req.body.urlAvatar
     }
-    let hasEmptyField = false
-    Object.keys(user).forEach((key) => {
-      if (importantFields.includes(key) && !user[key]) {
-        hasEmptyField = true
-      }
-    })
-    if (hasEmptyField) {
-      return response.response_fail(res, response.BAD_REQUEST, 'Missing required fields.')
-    }
+    const checkResult = usefulStuff.checkField(user)
+    if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
     const newUser = await User.create(user)
       .then((data) => {
         //mail.send_password('Cấp mật khẩu mới', req.password, user.email)
@@ -231,6 +211,8 @@ exports.create_transaction_employee = async (req, res) => {
 exports.update_password = async (req, res) => {
   try {
     const user = req.user
+    if (!req.body.password) return response.response_fail(res, response.BAD_REQUEST, 'Missing new password')
+    if (user.password === req.body.password) return response.response_fail(res, response.BAD_REQUEST, 'new password is the same as old one')
     await User.findByIdAndUpdate(user._id, {password: req.body.password})/* .catch((err) => {
       return response.response_fail(res, response.CONFLICT, err)
     }) */
@@ -244,11 +226,19 @@ exports.update_password = async (req, res) => {
 
 exports.update_user = async (req, res) => {
   try {
-    if (!req.params.id) {
-      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: id')
-    }
-    console.log(req.body);
-    await User.updateOne({ _id: req.params.id }, req.body)
+    if (!req.params.id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: id')
+    const user = await User.findById(req.params.id)
+    if (!user) return response.response_fail(res, response.NOT_FOUND, 'user doesn\'t exist')
+    const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']
+    let updateFieldObj = {}
+    Object.keys(req.body).forEach((key) => {
+      if (userModelFields.includes(key) && req.body[key]) {
+        updateFieldObj[key] = req.body[key]
+      }
+    })
+    const checkResult = usefulStuff.checkField(updateFieldObj)
+    if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
+    await User.findByIdAndUpdate(user._id, updateFieldObj)
     return response.response_success(res, response.OK, "Update user successfully")
   } catch (err) {
     err.file = 'controller/user.js'
@@ -259,28 +249,24 @@ exports.update_user = async (req, res) => {
 
 exports.update_warehouse_employee = async (req, res) => {
   try {
+    if (!req.params.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
     const warehouse = req.warehouse
-    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where phone number?')
-    const employee = await User.findOne({phone_number: req.body.phone_number})
-    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'phone no exist')
-    if (!warehouse.warehouse_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'not your slave')
+    if (!warehouse) return response.response.response_fail(res, response.response.INTERNAL_SERVER_ERROR, 'middleware error: missing warehouse object')
+    if (!req.body.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Where is user if?')
+    const employee = await User.findById(req.params.user_id)
+    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'user doesn\'t exist')
+    if (!warehouse.warehouse_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'this employee isn\'t in this warehouse')
     const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']
-    const workplaceFields = ['role']
     let updateFieldObj = {}
     Object.keys(req.body).forEach((key) => {
       if (userModelFields.includes(key) && req.body[key]) {
         updateFieldObj[key] = req.body[key]
       }
     })
-    if(req.body.workplace) {updateFieldObj.workplace = {}; Object.keys(req.body.workplace).forEach((key) => {
-      if (workplaceFields.includes(key) && req.body.workplace[key]) {
-        updateFieldObj.workplace[key] = req.body.workplace[key]
-      }
-    })}
-    const mess = await User.updateOne({phone_number: req.body.phone_number}, updateFieldObj)/* .catch((err) => {
-      return response.response_fail(res, response.CONFLICT, err)
-    }) */
-    return response.response_success(res, response.OK, mess)
+    const checkResult = usefulStuff.checkField(updateFieldObj)
+    if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
+    await User.findByIdAndUpdate(employee._id, updateFieldObj)
+    return response.response_success(res, response.OK, 'update warehouse employee successfully')
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'update_warehouse_employee'
@@ -290,30 +276,24 @@ exports.update_warehouse_employee = async (req, res) => {
 
 exports.update_transaction_employee = async (req, res) => {
   try {
+    if (!req.params.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
     const transactionSpot = req.transactionSpot
-    if (!req.body.phone_number) return response.response_fail(res, response.BAD_REQUEST, 'Where phone number?')
-    const employee = await User.findOne({phone_number: req.body.phone_number})
-    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'phone no exist')
-    if (!transactionSpot.transaction_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'not your slave')
+    if (!transactionSpot) return response.response.response_fail(res, response.response.INTERNAL_SERVER_ERROR, 'middleware error: missing transaction spot object')
+    if (!req.body.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Where is user id?')
+    const employee = await User.findById(req.params.user_id)
+    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'user doesn\'t exist')
+    if (!transactionSpot.transaction_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'this employee isn\'t in this transaction spot')
     const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']
-    const workplaceFields = ['role']
     let updateFieldObj = {}
     Object.keys(req.body).forEach((key) => {
       if (userModelFields.includes(key) && req.body[key]) {
         updateFieldObj[key] = req.body[key]
       }
     })
-    if (req.body.workplace) {
-      updateFieldObj.workplace = {}; 
-      Object.keys(req.body.workplace).forEach((key) => {
-      if (workplaceFields.includes(key) && req.body.workplace[key]) {
-        updateFieldObj.workplace[key] = req.body.workplace[key]
-      }
-    })}
-    const mess = await User.updateOne({phone_number: req.body.phone_number}, updateFieldObj)/* .catch((err) => {
-      return response.response_fail(res, response.CONFLICT, err)
-    }) */
-    return response.response_success(res, response.OK, mess)
+    const checkResult = usefulStuff.checkField(updateFieldObj)
+    if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
+    await User.findByIdAndUpdate(employee._id, updateFieldObj)
+    return response.response_success(res, response.OK, 'update transaction employee successfully')
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'update_warehouse_employee'
@@ -326,7 +306,7 @@ exports.delete_manager = async (req, res) => {
     if (!req.params.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
     const user = await User.findById(req.params.user_id)
     if (!user) {
-      return response.response_fail(res, response.NOT_FOUND, 'User no longer exist')
+      return response.response_fail(res, response.NOT_FOUND, 'User doesn\'t exist')
     }
     await User.deleteOne({ _id: req.params.user_id })
     // remove user from workplace follow role
@@ -345,16 +325,16 @@ exports.delete_manager = async (req, res) => {
 
 exports.delete_warehouse_employee = async (req, res) => {
   try {
-    const id = req.params.user_id
-    if (!id) {
-      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
-    }
-    const employee = await User.findById(id)
-    if (!employee) {
-      return response.response_fail(res, response.NOT_FOUND, 'User no longer exist')
-    }
-    await User.deleteOne({ _id: id })
-    return response.response_success(res, response.OK, mess)
+    const warehouse = req.warehouse
+    if (!warehouse) return response.response.response_fail(res, response.response.INTERNAL_SERVER_ERROR, 'middleware error: missing warehouse object')
+    const user_id = req.params.user_id
+    if (!user_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
+    const employee = await User.findById(user_id)
+    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'employee doens\'t exist')
+    if (!warehouse.warehouse_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'this employee isn\'t in this warehouse')
+    await User.findByIdAndDelete(employee._id)
+    await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: {warehouse_employees: employee._id}})
+    return response.response_success(res, response.OK, 'delete warehouse employee success')
   } catch (err) {s
     err.file = 'controller/user.js'
     err.function = 'delete_warehouse_employee'
@@ -364,16 +344,16 @@ exports.delete_warehouse_employee = async (req, res) => {
 
 exports.delete_transaction_employee = async (req, res) => {
   try {
-    const id = req.params.user_id
-    if (!id) {
-      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
-    }
-    const employee = await User.findById(id)
-    if (!employee) {
-      return response.response_fail(res, response.NOT_FOUND, 'User no longer exist')
-    }
-    await User.deleteOne({ _id: id })
-    return response.response_success(res, response.OK, mess)
+    const transactionSpot = req.transactionSpot
+    if (!transactionSpot) return response.response.response_fail(res, response.response.INTERNAL_SERVER_ERROR, 'middleware error: missing transaction spot object')
+    const user_id = req.params.user_id
+    if (!user_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
+    const employee = await User.findById(user_id)
+    if (!employee) return response.response_fail(res, response.NOT_FOUND, 'employee doens\'t exist')
+    if (!transactionSpot.transaction_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'this employee isn\'t in this transaction spot')
+    await User.findByIdAndDelete(employee._id)
+    await TransactionSpot.findByIdAndUpdate(transactionSpot._id, { $pull: {transaction_employees: employee._id}})
+    return response.response_success(res, response.OK, 'delete transaction employee success')
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'delete_transaction_employee'

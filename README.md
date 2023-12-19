@@ -106,6 +106,17 @@ response:
   }
 }
 ```
+## `user::get_all_manager`
+
+GET /user/get_list_manager
+
+response:
+
+```javascript
+{
+  //list of manager documents
+}
+```
 
 ## `user::create_manager`
 

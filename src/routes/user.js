@@ -15,7 +15,7 @@ route.use(body_parse.json())
 route.post('/get_token', userController.get_token)
 
 // for test
-route.get('/self_info', auth.authToken, userController.get_self_info)
+route.get('/get_info/:_id', auth.authToken, userController.get_info)
 
 // route.post('/create_warehouse_manager', auth.authDirector, userController.create_warehouse_manager)
 

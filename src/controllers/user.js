@@ -41,11 +41,14 @@ exports.create_director = async (req, res) => {
   }
 }
 
-exports.get_self_info = async (req, res) => {
+exports.get_info = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
-    if (!user) return response.response_fail(res, response.NOT_FOUND, "invalid id, can\'t find user")
-    user.password = undefined
+    const _id = req.params._id;
+    const userData = await User.findById(_id)
+    if (!userData) {
+      return response.response_fail(res, response.NOT_FOUND, "invalid id")
+    }
+    userData.password = undefined
     return response.response_success(res, response.OK, userData)
   } catch (err) {
     err.file = 'controller/user.js'
@@ -329,9 +332,9 @@ exports.delete_warehouse_employee = async (req, res) => {
     const employee = await User.findById(user_id)
     if (!employee) return response.response_fail(res, response.NOT_FOUND, 'employee doens\'t exist')
     if (!warehouse.warehouse_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'this employee isn\'t in this warehouse')
-    const mess = await User.findByIdAndDelete(employee._id)
+    await User.findByIdAndDelete(employee._id)
     await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: {warehouse_employees: employee._id}})
-    return response.response_success(res, response.OK, mess)
+    return response.response_success(res, response.OK, 'delete warehouse employee success')
   } catch (err) {s
     err.file = 'controller/user.js'
     err.function = 'delete_warehouse_employee'
@@ -348,9 +351,9 @@ exports.delete_transaction_employee = async (req, res) => {
     const employee = await User.findById(user_id)
     if (!employee) return response.response_fail(res, response.NOT_FOUND, 'employee doens\'t exist')
     if (!transactionSpot.transaction_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'this employee isn\'t in this transaction spot')
-    const mess = await User.findByIdAndDelete(employee._id)
+    await User.findByIdAndDelete(employee._id)
     await TransactionSpot.findByIdAndUpdate(transactionSpot._id, { $pull: {transaction_employees: employee._id}})
-    return response.response_success(res, response.OK, mess)
+    return response.response_success(res, response.OK, 'delete transaction employee success')
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'delete_transaction_employee'

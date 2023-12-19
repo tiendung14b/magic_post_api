@@ -63,10 +63,40 @@ exports.create_transaction = async (req, res) => {
       shipping_cost,
       prepaid
     })
+    await TransactionSpot.findByIdAndUpdate(source_transaction_spot, {
+      $push: {
+        from_client_transactions: data._id
+      }
+    })
     return response.response_success(res, data)
   } catch (error) {
     error.file = 'transaction_spot.js'
     error.function = 'create_transaction'
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
   }
+}
+
+exports.get_all_transaction = async (req, res) => {
+  try {
+    const transactions = await Transaction.find()
+    return response.response_success(res, transactions)
+  } catch (error) {
+    error.file = 'transaction_spot.js'
+    error.function = 'get_all_transaction'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
+  }
+}
+
+exports.get_transaction = async (req, res) => {
+  try {
+    const transaction = await Transaction.findById(req.params.id)
+    return response.response_success(res, transaction)
+  } catch (error) {
+    error.file = 'transaction_spot.js'
+    error.function = 'get_transaction'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
+  }
+}
+
+exports.send_to_warehouse = async (req, res) => {
 }

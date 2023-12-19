@@ -9,6 +9,38 @@ const bcrypt = require('bcrypt')
 const mail = require('../utils/mail')
 const usefulStuff = require('../utils/usefulStuff')
 
+exports.create_director = async (req, res) => {
+  try {
+    const {
+      last_name,
+      first_name,
+      email,
+      phone_number,
+      password,
+      urlAvatar
+    } = req.body
+    const hash_password = await bcrypt.hash(password, 10)
+    const user = {
+      last_name,
+      first_name,
+      email,
+      phone_number,
+      password: hash_password,
+      urlAvatar
+    }
+    user.workplace = {
+      workplace_name: 'DIRECTOR',
+      role: 'DIRECTOR'
+    }
+    await User.create(user)
+    return response.response_success(res, response.CREATED, user)
+  } catch (err) {
+    err.file = 'controller/user.js'
+    err.function = 'creat_director'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
 exports.get_info = async (req, res) => {
   try {
     const _id = req.params._id;
@@ -44,8 +76,7 @@ exports.get_token = async (req, res) => {
     }
     const dataUser = await User.findOne({ phone_number: user.phone_number })
     if (!dataUser) return response.response_fail(res, response.NOT_FOUND, 'Account not exist!')
-    // const match = await bcrypt.compare(user.password, dataUser.password)
-    const match = (dataUser.password == user.password) 
+    const match = await bcrypt.compare(user.password, dataUser.password)
     if (!match) return response.response_fail(res, response.NOT_FOUND, 'Password is incorrect.')
     //  token includes 3 fields: _id, role, work_place
     //  client will decide what to do with role and load data from workplace
@@ -196,8 +227,8 @@ exports.update_password = async (req, res) => {
 
 exports.update_user = async (req, res) => {
   try {
-    if (!req.body.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Where is user id?')
-    const user = await User.findById(req.body.user_id)
+    if (!req.params.id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: id')
+    const user = await User.findById(req.params.id)
     if (!user) return response.response_fail(res, response.NOT_FOUND, 'user doesn\'t exist')
     const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']
     let updateFieldObj = {}
@@ -208,9 +239,8 @@ exports.update_user = async (req, res) => {
     })
     const checkResult = usefulStuff.checkField(updateFieldObj)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
-    //console.log(updateFieldObj);
-    const mess = await User.findByIdAndUpdate(user._id, updateFieldObj)
-    return response.response_success(res, response.OK, mess)
+    await User.findByIdAndUpdate(user._id, updateFieldObj)
+    return response.response_success(res, response.OK, "Update user successfully")
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'update_user'
@@ -261,8 +291,8 @@ exports.update_transaction_employee = async (req, res) => {
     })
     const checkResult = usefulStuff.checkField(updateFieldObj)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
-    const mess = await User.findByIdAndUpdate(employee._id, updateFieldObj)
-    return response.response_success(res, response.OK, mess)
+    await User.findByIdAndUpdate(employee._id, updateFieldObj)
+    return response.response_success(res, response.OK, 'update transaction employee successfully')
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'update_warehouse_employee'

@@ -1,4 +1,5 @@
 const geocoder = require('node-geocoder')
+const axios = require('axios')
 
 const options = {
   provider: 'google',
@@ -25,12 +26,38 @@ exports.calcDistance = (lat1, lon1, lat2, lon2) => {
 
 exports.get_geocode_by_address = async (address) => {
   try {
-    const result = await geocoder(options).geocode(address)
-    return result
+    const url = `https://api.geoapify.com/v1/geocode/search?text=${address}&lang=vi&limit=2&format=json&apiKey=45cdd854b9f946d291b981313826017d`;
+    const response = await axios.get(url)
+    const data = response.data;
+    return data.results[0]
   } catch (err) {
+    err.file = 'geocode.js'
+    err.function = 'getPostalCode'
     throw err
   }
 }
 
+exports.getPostalCode = async (address) => {
+  try {
+    const url = `https://api.geoapify.com/v1/geocode/search?text=${address}&lang=vi&limit=2&format=json&apiKey=45cdd854b9f946d291b981313826017d`;
+    const response = await axios.get(url)
+    const data = response.data;
+    return data.results[0]
+  } catch (err) {
+    err.file = 'geocode.js'
+    err.function = 'getPostalCode'
+    throw err
+  }
+}
 
+exports.reverseGeocode = async (lat, lng) => {
+  try {
+    const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=45cdd854b9f946d291b981313826017d`;
+    const response = await axios.get(url)
+    const data = response.data;
+    return data
+  } catch (err) {
+    throw err
+  }
+}
 

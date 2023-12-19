@@ -31,7 +31,7 @@ route.post('/transaction_employee', auth.authTransactionSpotManager, userControl
 
 route.put('/password', auth.authToken, userController.update_password)
 
-route.put('/user', auth.authDirector, userController.update_user)
+route.put('/:id', userController.update_user)
 
 route.put('/warehouse_employee', auth.authWarehouseManager, userController.update_warehouse_employee)
 

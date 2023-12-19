@@ -1,11 +1,35 @@
 const mongoose = require('mongoose');
+const { response_success } = require('../utils/response');
+
+const locationSchema = new mongoose.Schema({
+  lat: {
+    type: Number,
+    required: true
+  },
+  long: {
+    type: Number,
+    required: true
+  },
+  city: {
+    type: String,
+    required: true
+  },
+  district: {
+    type: String,
+    required: true
+  },
+  detail: {
+    type: String,
+    required: true
+  }
+});
 
 const transactionSpotSchema = new mongoose.Schema({
   name: {
     type: String,
   },
   location: {
-    type: String, 
+    type: locationSchema,
     required: true
   },
   postal_code: {
@@ -27,19 +51,22 @@ const transactionSpotSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   }],
-  shipment_transactions: [{
+  // transaction from client
+  from_client_transactions: [{
     type: mongoose.Schema.Types.ObjectId
   }],
+  // transaction from warehouse
   unconfirm_transactions: [{
     type: mongoose.Schema.Types.ObjectId
   }],
-  delivery_transactions: [{
+  // trannsaction after confirm
+  to_client_transactions: [{
+    type: mongoose.Schema.Types.ObjectId
+  }], 
+  sending_history: [{
     type: mongoose.Schema.Types.ObjectId
   }],
-  sending_transactions: [{
-    type: mongoose.Schema.Types.ObjectId
-  }],
-  transaction_histories: [{
+  success_transactions: [{
     type: mongoose.Schema.Types.ObjectId
   }],
   failed_transactions: [{

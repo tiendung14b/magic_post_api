@@ -1,11 +1,6 @@
-const geocoder = require('node-geocoder')
 
-const options = {
-  provider: 'google',
-  httpAdapter: 'https',
-  apiKey: process.env.MAPS_API_KEY,
-  formatter: null
-}
+const geocoder = require('../utils/geocode')
+const response = require('../utils/response')
 
 const calcDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371e3 // metres
@@ -31,3 +26,30 @@ exports.get_geocode_by_address = async (req, res) => {
   }
 }
 
+exports.getPostalCode = async (req, res) => {
+  try {
+    const result = await geocoder.getPostalCode(req.body.address)
+    res.json(result)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+exports.reverseGeocode = async (req, res) => {
+  try {
+    const result = await geocoder.reverseGeocode(req.body.lat, req.body.lng)
+    return response.response_success(res, response.OK, result)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+
+exports.getDistance = async (req, res) => {
+  try {
+    const result = await geocoder.getDistance(req.body.lat1, req.body.lng1, req.body.lat2, req.body.lng2)
+    return response.response_success(res, response.OK, result)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}

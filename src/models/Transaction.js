@@ -33,11 +33,23 @@ const packageSchema = new mongoose.Schema({
   quantity: Number,
 })
 
-const transactionSchema = new mongoose.Schema({
-  transaction_tracker: {
-    type: mongoose.Schema.Types.ObjectId,
+const statusSchema = new mongoose.Schema({
+  status: {
+    type: String,
+    enum: ['SUCCESS', 'FAILED', 'WAITING'],
+    default: 'WAITING'
+  },
+  date: {
+    type: Date,
     required: true
   },
+  location: {
+    type: String,
+    required: true
+  }
+}) 
+
+const transactionSchema = new mongoose.Schema({
   transaction_qr_tracker: {
     type: String,
     required: true
@@ -45,21 +57,23 @@ const transactionSchema = new mongoose.Schema({
   sender: clientSchema,
   receiver: clientSchema,
   list_package: [packageSchema],
-  source_postal_code: {
-    type: String,
+  source_transaction_spot: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TransactionSpot',
     required: true
   },
-  destination_postal_code: {
-    type: String,
+  destination_transaction_spot: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TransactionSpot',
     required: true
   },
   receive_date: {
     type: Date,
-    required: true
   },
   send_date: {
     type: Date,
-    required: true
+    required: true,
+    default: Date.now()
   },
   transaction_type: {
     type: String,
@@ -69,6 +83,7 @@ const transactionSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  status: [statusSchema],
   prepaid: Number
 });
 

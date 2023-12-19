@@ -20,15 +20,18 @@ const WarehouseSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
-  shipment_transactions: [{
+  // history of transactions received from transaction spot
+  received_transactions_history: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Transaction'
   }],
-  delivery_transactions: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Transaction'
-  }],
+  // current transactions waiting to be delivered to transaction spot
   unconfirm_transactions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction'
+  }],
+  // history of transactions sent to transaction spot
+  sent_transactions_history: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Transaction'
   }]

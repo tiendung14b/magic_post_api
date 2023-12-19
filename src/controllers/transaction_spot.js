@@ -29,23 +29,24 @@ exports.create_transaction_spot = async (req, res) => {
       transaction_manager,
       transaction_employees: []
     })
-    return response.response_success(res, response.OK, 'Create transaction spot success')
-  } catch (error) {
-    console.log(error)
-    error.file = 'transaction_spot.js'
-    error.function = 'create_transaction_spot'
-    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
+    return response.response_success(res, response.OK, 'Create transaction spot successfully')
+  } catch (err) {
+    console.log(err)
+    err.file = 'transaction_spot.js'
+    err.function = 'create_transaction_spot'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 };
 
 exports.get_transaction_spot = async (req, res) => {
   try {
+    if(!req.params.id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: transaction spot id')
     const transactionSpot = await TransactionSpot.findById(req.params.id).populate('transaction_manager').populate('transaction_employees').populate('warehouse')
     return response.response_success(res, response.OK, transactionSpot)
-  } catch (error) {
-    error.file = 'transaction_spot.js'
-    error.function = 'get_transaction_spot'
-    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
+  } catch (err) {
+    err.file = 'transaction_spot.js'
+    err.function = 'get_transaction_spot'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 };
 
@@ -53,10 +54,10 @@ exports.get_all_transaction_spot = async (req, res) => {
   try {
     const transactionSpot = await TransactionSpot.find().populate('transaction_manager').populate('transaction_employees').populate('warehouse')
     return response.response_success(res, response.OK, transactionSpot)
-  } catch (error) {
-    error.file = 'transaction_spot.js'
-    error.function = 'get_all_transaction_spot'
-    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
+  } catch (err) {
+    err.file = 'transaction_spot.js'
+    err.function = 'get_all_transaction_spot'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 };
 
@@ -86,11 +87,11 @@ exports.set_manager = async (req, res) => {
     }
     await TransactionSpot.findByIdAndUpdate(id, { transaction_manager: manager_id })
     await User.findByIdAndUpdate(manager_id, { $set: { 'workplace?.workplace_id': id, 'workplace?.workplace_name': 'TRANSACTION' } })
-    return response.response_success(res, response.OK, 'set manager success')
-  } catch (error) {
-    error.file = 'transaction_spot.js'
-    error.function = 'set_manager'
-    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
+    return response.response_success(res, response.OK, 'set transaction manager success')
+  } catch (err) {
+    err.file = 'transaction_spot.js'
+    err.function = 'set_manager'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
 
@@ -110,10 +111,10 @@ exports.remove_manager = async (req, res) => {
     }
     await TransactionSpot.findByIdAndUpdate(id, { transaction_manager: null })
     await User.findByIdAndUpdate(manager._id, { $set: { 'workplace?.workplace_id': null, 'workplace?.workplace_name': null } })
-  } catch (error) {
-    error.file = 'transaction_spot.js'
-    error.function = 'remove_manager'
-    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
+  } catch (err) {
+    err.file = 'transaction_spot.js'
+    err.function = 'remove_manager'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
 
@@ -125,9 +126,9 @@ exports.remove_manager = async (req, res) => {
 //     }
 //     await TransactionSpot.findByIdAndDelete(req.params.id)
 //     return response.response_success(res, response.OK, 'Delete transaction spot success')
-//   } catch (error) {
-//     error.file = 'transaction_spot.js'
-//     error.function = 'delete_transaction_spot'
-//     return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
+//   } catch (err) {
+//     err.file = 'transaction_spot.js'
+//     err.function = 'delete_transaction_spot'
+//     return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
 //   }
 // }

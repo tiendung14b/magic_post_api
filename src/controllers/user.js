@@ -41,14 +41,11 @@ exports.create_director = async (req, res) => {
   }
 }
 
-exports.get_info = async (req, res) => {
+exports.get_self_info = async (req, res) => {
   try {
-    const _id = req.params._id;
-    const userData = await User.findById(_id)
-    if (!userData) {
-      return response.response_fail(res, response.NOT_FOUND, "invalid id")
-    }
-    userData.password = undefined
+    const user = await User.findById(req.user._id);
+    if (!user) return response.response_fail(res, response.NOT_FOUND, "invalid id, can\'t find user")
+    user.password = undefined
     return response.response_success(res, response.OK, userData)
   } catch (err) {
     err.file = 'controller/user.js'
@@ -174,7 +171,6 @@ exports.create_transaction_employee = async (req, res) => {
     /* if(!transactionSpot) return response.response_error(res, response.INTERNAL_SERVER_ERROR, err) */
     req.password = (Math.random() + 1).toString(36).substring(6)
     const hash_password = await bcrypt.hash(req.password, 10)
-    const importantFields = ['last_name', 'first_name', 'email', 'phone_number', 'role']
     const user = {
       last_name: req.body.last_name,
       first_name: req.body.first_name,
@@ -250,10 +246,11 @@ exports.update_user = async (req, res) => {
 
 exports.update_warehouse_employee = async (req, res) => {
   try {
+    if (!req.params.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
     const warehouse = req.warehouse
     if (!warehouse) return response.response.response_fail(res, response.response.INTERNAL_SERVER_ERROR, 'middleware error: missing warehouse object')
     if (!req.body.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Where is user if?')
-    const employee = await User.findById(req.body.user_id)
+    const employee = await User.findById(req.params.user_id)
     if (!employee) return response.response_fail(res, response.NOT_FOUND, 'user doesn\'t exist')
     if (!warehouse.warehouse_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'this employee isn\'t in this warehouse')
     const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']
@@ -265,8 +262,8 @@ exports.update_warehouse_employee = async (req, res) => {
     })
     const checkResult = usefulStuff.checkField(updateFieldObj)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
-    const mess = await User.findByIdAndUpdate(employee._id, updateFieldObj)
-    return response.response_success(res, response.OK, mess)
+    await User.findByIdAndUpdate(employee._id, updateFieldObj)
+    return response.response_success(res, response.OK, 'update warehouse employee successfully')
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'update_warehouse_employee'
@@ -276,10 +273,11 @@ exports.update_warehouse_employee = async (req, res) => {
 
 exports.update_transaction_employee = async (req, res) => {
   try {
+    if (!req.params.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: user_id')
     const transactionSpot = req.transactionSpot
     if (!transactionSpot) return response.response.response_fail(res, response.response.INTERNAL_SERVER_ERROR, 'middleware error: missing transaction spot object')
     if (!req.body.user_id) return response.response_fail(res, response.BAD_REQUEST, 'Where is user id?')
-    const employee = await User.findById(req.body.user_id)
+    const employee = await User.findById(req.params.user_id)
     if (!employee) return response.response_fail(res, response.NOT_FOUND, 'user doesn\'t exist')
     if (!transactionSpot.transaction_employees.includes(employee._id)) return response.response_fail(res, response.UNAUTHORIZED, 'this employee isn\'t in this transaction spot')
     const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']

@@ -51,24 +51,27 @@ const transactionSpotSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   }],
-  // transaction from client
+  // transaction received from client
   from_client_transactions: [{
     type: mongoose.Schema.Types.ObjectId
   }],
-  // transaction from warehouse
+  // transaction waiting to be received from warehouse
   unconfirm_transactions: [{
     type: mongoose.Schema.Types.ObjectId
   }],
-  // trannsaction after confirm
+  // transaction after confirm to ship to client
   to_client_transactions: [{
     type: mongoose.Schema.Types.ObjectId
   }], 
+  // history of transaction received from client
   sending_history: [{
     type: mongoose.Schema.Types.ObjectId
   }],
+  // transactions successfully delivered to client
   success_transactions: [{
     type: mongoose.Schema.Types.ObjectId
   }],
+  // transactions fail to delivered to client
   failed_transactions: [{
     type: mongoose.Schema.Types.ObjectId
   }]

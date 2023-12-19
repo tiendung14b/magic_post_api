@@ -1,13 +1,20 @@
 const express = require('express')
-const route = express.Router()
-const body_parser = require('body-parser')
+const router = express.Router()
 const auth = require('../middleware/auth')
+const body_parse = require('body-parser')
+const warehouseController = require('../controllers/warehouse')
+const cors = require('cors')
 
-// just for the test
-route.get('/testauth/:transactionSpot_id', auth.authTransactionSpotEmployee, (req, res) => {
-  res.json({
-    message: 'test success'
-  })
-})
+router.use(cors({
+  origin: "*"
+}))
 
-module.exports = route
+router.use(body_parse.json())
+
+router.post('/', auth.authDirector, transactionSpotController.create_warehouse)
+router.get('/all', auth.authDirector, transactionSpotController.get_all_warehouse)
+router.get('/:id', auth.authDirector, transactionSpotController.get_warehouse)
+router.put('/manager/:warehouse_id', auth.authDirector, warehouseController.set_manager)
+
+
+module.exports = router

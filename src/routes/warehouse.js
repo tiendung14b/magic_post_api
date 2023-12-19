@@ -11,9 +11,9 @@ router.use(cors({
 
 router.use(body_parse.json())
 
-router.post('/', auth.authDirector, transactionSpotController.create_warehouse)
-router.get('/all', auth.authDirector, transactionSpotController.get_all_warehouse)
-router.get('/:id', auth.authDirector, transactionSpotController.get_warehouse)
+router.post('/', auth.authDirector, warehouseController.create_warehouse)
+router.get('/all', auth.authDirector, warehouseController.get_all_warehouse)
+router.get('/:id', auth.authDirector, warehouseController.get_warehouse)
 router.put('/manager/:warehouse_id', auth.authDirector, warehouseController.set_manager)
 
 

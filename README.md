@@ -4,7 +4,7 @@ this is api for magic post website
 
 # how to run in local?
 
-If this is the first time you pull this code, or you update new code, before you run this code, you must rebuild project to get all library in your folder. \n
+If this is the first time you pull this code, or you update new code, before you run this code, you must rebuild project to get all library in your folder.  
 To do this, use
 
 ### `npm i`
@@ -21,7 +21,7 @@ To rebuild project, use
 
 after new api created, i will write a guide how to use it and update in this readme
 
-format of response
+format of response  
 Success:
 
 ```javascript
@@ -54,7 +54,7 @@ Error:
 
 ## `user::Get token`
 
-POST /user/get_token\n
+POST /user/get_token  
 body:
 
 ```javascript
@@ -120,7 +120,7 @@ response:
 
 ## `user::create_manager`
 
-POST /user/manager\n
+POST /user/manager  
 Require director token
 
 body:
@@ -148,7 +148,7 @@ response:
 
 ## `user::create_warehouse_employee`
 
-POST user/warehouse_employee
+POST user/warehouse_employee  
 Require warehouse manager token
 
 ```javascript
@@ -168,7 +168,7 @@ response: new employee document
 
 ## `user::create_transaction_employee`
 
-POST user/transaction_employee
+POST user/transaction_employee  
 Require transaction manager token
 
 ```javascript
@@ -188,7 +188,7 @@ response: new employee document
 
 ## `user::update_password`
 
-PUT user/password
+PUT user/password  
 Require user token
 
 body: 
@@ -203,7 +203,7 @@ response: success message
 
 ## `user::update_user`
 
-PUT user/:id
+PUT user/:id  
 require no token, anyone can change anyone info, security in trashcan
 
 ```javascript
@@ -216,7 +216,7 @@ response: success message
 
 ## `user::update_warehouse_employee`
 
-PUT user/warehouse_employee/:user_id
+PUT user/warehouse_employee/:user_id  
 require warehouse manager token, user_id in request url
 
 request body: 
@@ -231,7 +231,7 @@ response: success message
 
 ## `user::update_transaction_employee`
 
-PUT user/transaction_employee/user:id
+PUT user/transaction_employee/user:id  
 require transaction spot manager token, user_id in request url
 
 request body: 
@@ -246,21 +246,21 @@ response: success message
 
 ## `user::delete_manager`
 
-DELETE user/manager/:user_id
+DELETE user/manager/:user_id  
 require director token, manager id in request url
 
 response: success message
 
 ## `user::delete_warehouse_employee`
 
-DELETE user/warehouse_employee/:user_id
+DELETE user/warehouse_employee/:user_id  
 require warehouse manager token, employee id in request url
 
 response: success message
 
 ## `user::delete_transaction_employee`
 
-DELETE user/transaction_employee/:user_id
+DELETE user/transaction_employee/:user_id  
 require transaction manager token, employee id in request url
 
 response: success message

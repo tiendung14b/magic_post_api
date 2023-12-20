@@ -23,7 +23,6 @@ exports.create_transaction_spot = async (req, res) => {
     await TransactionSpot.create({
       name,
       location,
-      
       postal_code: geocodeInfo.postcode,
       warehouse,
       transaction_manager,
@@ -110,7 +109,7 @@ exports.remove_manager = async (req, res) => {
       return response.response_fail(res, response.NOT_FOUND, 'manager not found')
     }
     await TransactionSpot.findByIdAndUpdate(id, { transaction_manager: null })
-    await User.findByIdAndUpdate(manager._id, { $set: { 'workplace?.workplace_id': null, 'workplace?.workplace_name': null } })
+    await User.findByIdAndUpdate(manager._id, { $set: { 'workplace?.workplace_id': null } })
   } catch (err) {
     err.file = 'transaction_spot.js'
     err.function = 'remove_manager'

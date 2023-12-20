@@ -76,17 +76,6 @@ exports.create_transaction = async (req, res) => {
   }
 }
 
-exports.get_all_transaction = async (req, res) => {
-  try {
-    const transactions = await Transaction.find()
-    return response.response_success(res, transactions)
-  } catch (error) {
-    error.file = 'transaction_spot.js'
-    error.function = 'get_all_transaction'
-    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
-  }
-}
-
 exports.get_transaction = async (req, res) => {
   try {
     const transaction = await Transaction.findById(req.params.id)
@@ -99,4 +88,33 @@ exports.get_transaction = async (req, res) => {
 }
 
 exports.send_to_warehouse = async (req, res) => {
+  try {
+    const { transaction_id, warehouse_id } = req.body
+    if (!transaction_id || !warehouse_id) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing field')
+    }
+    const transaction = await Transaction.findById(transaction_id)
+    if (!transaction) {
+      return response.response_fail(res, response.NOT_FOUND, 'Transaction not found')
+    }
+    const warehouse = await Warehouse.findById(warehouse_id)
+    if (!warehouse) {
+      return response.response_fail(res, response.NOT_FOUND, 'Warehouse not found')
+    }
+    await TransactionSpot.findByIdAndUpdate(transaction.source_transaction_spot, {
+      $pull: {
+        from_client_transactions: transaction_id
+      }
+    })
+    await Warehouse.findByIdAndUpdate(warehouse_id, {
+      $push: {
+        unconfirm_transactions: transaction_id
+      }
+    })
+    return response.response_success(res, 'Send to warehouse success')
+  } catch (error) {
+    error.file = 'transaction_spot.js'
+    error.function = 'send_to_warehouse'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
+  }
 }

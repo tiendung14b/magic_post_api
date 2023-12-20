@@ -229,7 +229,7 @@ exports.update_user = async (req, res) => {
     if (!req.params.id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: id')
     const user = await User.findById(req.params.id)
     if (!user) return response.response_fail(res, response.NOT_FOUND, 'user doesn\'t exist')
-    const userModelFields = ['last_name', 'first_name', 'email', 'password', 'urlAvatar']
+    const userModelFields = ['last_name', 'first_name', 'email', 'password', 'url_avatar']
     let updateFieldObj = {}
     Object.keys(req.body).forEach((key) => {
       if (userModelFields.includes(key) && req.body[key]) {

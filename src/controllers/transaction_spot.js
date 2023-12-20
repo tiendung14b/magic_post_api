@@ -140,7 +140,7 @@ exports.get_unconfirmed_transaction = async (req, res) => {
   }
 }
 
-exports.get_to_client_transaction = async (req, res) => {
+exports.get_from_client_transaction = async (req, res) => {
   try {
     const transaction_spot_id = req.params.transaction_spot_id
     if (!transaction_spot_id) {
@@ -150,12 +150,12 @@ exports.get_to_client_transaction = async (req, res) => {
     if (!transaction_spot) {
       return response.response_fail(res, response.NOT_FOUND, 'transaction_spot not found')
     }
-    const to_client_transactions = await Transaction.find({ _id: { $in: transaction_spot.to_client_transactions } })
+    const from_client_transactions = await Transaction.find({ _id: { $in: transaction_spot.from_client_transactions } })
       .populate('sender')
       .populate('receiver')
       .populate('source_transaction_spot')
       .populate('destination_transaction_spot')
-    return repsponse.response_success(res, response.OK, to_client_transactions)
+    return response.response_success(res, response.OK, from_client_transactions)
   } catch (err) {
     err.file = 'transaction_spot.js'
     err.function = 'get_to_client_transaction'

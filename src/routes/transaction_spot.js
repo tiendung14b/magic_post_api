@@ -19,6 +19,7 @@ router.put('/set_manager/:transaction_spot_id', auth.authDirector, transactionSp
 router.delete('/remove_manager/:transaction_spot_id', auth.authDirector, transactionSpotController.remove_manager)
 
 router.post('/send_to_warehouse', auth.authTransactionSpotEmployee, transactionController.send_to_warehouse)
-
+router.get('/get_unconfirmed', auth.authWarehouseEmployee, transactionSpotController.get_unconfirmed_transaction)
+router.get('/get_from_client_transactions/:transaction_spot_id', transactionSpotController.get_from_client_transaction)
 
 module.exports = router

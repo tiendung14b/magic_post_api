@@ -117,17 +117,48 @@ exports.remove_manager = async (req, res) => {
   }
 }
 
-// exports.delete_transaction_spot = async (req, res) => {
-//   try {
-//     const transactionSpot = await TransactionSpot.findById(req.params.id)
-//     if (!transactionSpot) {
-//       return response.response_fail(res, response.NOT_FOUND, 'Transaction spot not found')
-//     }
-//     await TransactionSpot.findByIdAndDelete(req.params.id)
-//     return response.response_success(res, response.OK, 'Delete transaction spot success')
-//   } catch (err) {
-//     err.file = 'transaction_spot.js'
-//     err.function = 'delete_transaction_spot'
-//     return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
-//   }
-// }
+exports.get_unconfirmed_transaction = async (req, res) => {
+  try {
+    const transaction_spot_id = req.params.transaction_spot_id
+    if (!transaction_spot_id) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: transaction_spot_id is required')
+    }
+    const transaction_spot = await TransactionSpot.findById(transaction_spot_id)
+    if (!transaction_spot) {
+      return response.response_fail(res, response.NOT_FOUND, 'transaction_spot not found')
+    }
+    const unconfirmed_transactions = await Transaction.find({ _id: { $in: transaction_spot.unconfirm_transactions } })
+      .populate('sender')
+      .populate('receiver')
+      .populate('source_transaction_spot')
+      .populate('destination_transaction_spot')
+    return response.response_success(res, response.OK, unconfirmed_transactions)
+  } catch (err) {
+    err.file = 'transaction_spot.js'
+    err.function = 'get_unconfirmed_transaction'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.get_to_client_transaction = async (req, res) => {
+  try {
+    const transaction_spot_id = req.params.transaction_spot_id
+    if (!transaction_spot_id) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: transaction_spot_id is required')
+    }
+    const transaction_spot = await TransactionSpot.findById(transaction_spot_id)
+    if (!transaction_spot) {
+      return response.response_fail(res, response.NOT_FOUND, 'transaction_spot not found')
+    }
+    const to_client_transactions = await Transaction.find({ _id: { $in: transaction_spot.to_client_transactions } })
+      .populate('sender')
+      .populate('receiver')
+      .populate('source_transaction_spot')
+      .populate('destination_transaction_spot')
+    return repsponse.response_success(res, response.OK, to_client_transactions)
+  } catch (err) {
+    err.file = 'transaction_spot.js'
+    err.function = 'get_to_client_transaction'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}

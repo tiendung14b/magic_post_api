@@ -85,7 +85,7 @@ exports.set_manager = async (req, res) => {
       return response.response_fail(res, response.BAD_REQUEST, 'transaction_spot already have manager')
     }
     await TransactionSpot.findByIdAndUpdate(id, { transaction_manager: manager_id })
-    await User.findByIdAndUpdate(manager_id, { $set: { 'workplace?.workplace_id': id, 'workplace?.workplace_name': 'TRANSACTION' } })
+    await User.findByIdAndUpdate(manager_id, { $set: { 'workplace.workplace_id': id, 'workplace.workplace_name': 'TRANSACTION' } })
     return response.response_success(res, response.OK, 'set transaction manager success')
   } catch (err) {
     err.file = 'transaction_spot.js'
@@ -109,7 +109,7 @@ exports.remove_manager = async (req, res) => {
       return response.response_fail(res, response.NOT_FOUND, 'manager not found')
     }
     await TransactionSpot.findByIdAndUpdate(id, { transaction_manager: null })
-    await User.findByIdAndUpdate(manager._id, { $set: { 'workplace?.workplace_id': null } })
+    await User.findByIdAndUpdate(manager._id, { $set: { 'workplace.workplace_id': undefined } })
   } catch (err) {
     err.file = 'transaction_spot.js'
     err.function = 'remove_manager'

@@ -164,6 +164,8 @@ Require warehouse manager token
 }
 ```
 
+response: new employee document
+
 ## `user::create_transaction_employee`
 
 POST user/transaction_employee
@@ -182,10 +184,14 @@ Require transaction manager token
 }
 ```
 
+response: new employee document
+
 ## `user::update_password`
 
 PUT user/password
 Require user token
+
+body: 
 
 ```javascript
 {
@@ -193,44 +199,69 @@ Require user token
 }
 ```
 
+response: success message
+
 ## `user::update_user`
 
-PUT user/user
-require director token
+PUT user/:id
+require no token, anyone can change anyone info, security in trashcan
 
 ```javascript
 {
+  'field that want changing': 'some value'
 }
 ```
+
+response: success message
+
 ## `user::update_warehouse_employee`
 
-PUT user/warehouse_employee
-require warehouse manager token, user_id in request body
+PUT user/warehouse_employee/:user_id
+require warehouse manager token, user_id in request url
 
 request body: 
 
 ```javascript
 {
-  'user_id': ObjectId,
   'field that want changing': 'some value'
 }
 ```
 
-response: the old document of warehouse
+response: success message
 
 ## `user::update_transaction_employee`
 
-PUT user/transaction_employee
-require transaction spot manager token, user_id in request body
+PUT user/transaction_employee/user:id
+require transaction spot manager token, user_id in request url
 
 request body: 
 
 ```javascript
 {
-  'user_id': ObjectId,
   'field that want changing': 'some value'
 }
 ```
 
-response: the old document of transaction spot
+response: success message
+
+## `user::delete_manager`
+
+DELETE user/manager/:user_id
+require director token, manager id in request url
+
+response: success message
+
+## `user::delete_warehouse_employee`
+
+DELETE user/warehouse_employee/:user_id
+require warehouse manager token, employee id in request url
+
+response: success message
+
+## `user::delete_transaction_employee`
+
+DELETE user/transaction_employee/:user_id
+require transaction manager token, employee id in request url
+
+response: success message
 

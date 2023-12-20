@@ -45,11 +45,9 @@ exports.create_transaction = async (req, res) => {
       transaction_type,
       prepaid
     } = req.body
-
     if (!sender || !receiver || !list_package || !source_transaction_spot || !transaction_type) {
       return response.response_fail(res, response.BAD_REQUEST, 'Missing field')
     }
-    const sourceTransactionSpot = await TransactionSpot.findById(source_transaction_spot)
     // all transaction spot except source transaction spot
     const { nearest_transaction_spot, min_distance } = await find_nearest_transaction_spot(
       receiver.address.detail + ', ' + receiver.address.district + ', ' + receiver.address.city
@@ -57,7 +55,6 @@ exports.create_transaction = async (req, res) => {
     if (!nearest_transaction_spot) {
       return response.response_fail(res, response.NOT_FOUND, 'Địa điểm nhận hàng chưa được hỗ trợ')
     }
-    console.log(min_distance)
     const destination_transaction_spot = nearest_transaction_spot._id
     const shipping_cost = min_distance * COST_PER_METRE
     if (!destination_transaction_spot) {

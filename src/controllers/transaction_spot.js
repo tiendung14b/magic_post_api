@@ -162,3 +162,56 @@ exports.get_from_client_transaction = async (req, res) => {
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
+
+exports.send_to_warehouse = async (req, res) => {
+  try {
+    const { transaction_id, transaction_spot_id } = req.body
+    if (!transaction_id || !transaction_spot_id) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params')
+    }
+    const transactionSpot = await TransactionSpot.findById(transaction_spot_id)
+    const warehouse = await Warehouse.findOne(transactionSpot?.warehouse)
+    if (!transactionSpot || !warehouse) {
+      return response.response_fail(res, response.NOT_FOUND, 'Transaction spot or warehouse not found')
+    }
+    await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
+      $pull: {
+        unconfirm_transactions: transaction_id
+      }
+    })
+    await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
+      $push: {
+        sending_history: transaction_id
+      }
+    })
+    await Warehouse.findByIdAndUpdate(warehouse._id, {
+      $push: {
+        unconfirm_transactions: transaction_id
+      }
+    })
+    return response.response_success(res, response.OK, 'Send to warehouse success')
+  } catch (error) {
+    error.file = 'transaction_spot.js'
+    error.function = 'send_to_warehouse'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
+  }
+}
+
+exports.delivery = async (req, res) => {
+  try {
+    const { transaction_id, transaction_spot_id } = req.body
+    if (!transaction_id || !transaction_spot_id) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params')
+    }
+    await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
+      $pull: {
+        to_client_transactions: transaction_id
+      }
+    })
+    return response.response_success(res, 'Send to client success')
+  } catch (error) {
+    error.file = 'transaction_spot.js'
+    error.function = 'send_to_client'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
+  }
+}

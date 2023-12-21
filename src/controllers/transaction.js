@@ -94,24 +94,3 @@ exports.get_transaction = async (req, res) => {
   }
 }
 
-exports.send_to_warehouse = async (req, res) => {
-  try {
-    const { transaction_id } = req.body
-    if (!transaction_id || !warehouse_id) {
-      return response.response_fail(res, response.BAD_REQUEST, 'Missing field')
-    }
-    const transaction = await Transaction.findById(transaction_id)
-    if (!transaction) {
-      return response.response_fail(res, response.NOT_FOUND, 'Transaction not found')
-    }
-    const warehouse = await Warehouse.findById(transaction.warehouse)
-    if (!warehouse) {
-      return response.response_fail(res, response.NOT_FOUND, 'You need set warehouse for this transaction first')
-    }
-    return response.response_success(res, 'Send to warehouse success')
-  } catch (error) {
-    error.file = 'transaction_spot.js'
-    error.function = 'send_to_warehouse'
-    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
-  }
-}

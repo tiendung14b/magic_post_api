@@ -25,8 +25,13 @@ const WarehouseSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Transaction'
   }],
-  // current transactions waiting to be delivered to transaction spot
+  // current transactions waiting to be delivered to here
   unconfirm_transactions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction'
+  }],
+  // current transactions inside warehouse
+  inwarehouse_transactions: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Transaction'
   }],

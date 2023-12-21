@@ -12,9 +12,13 @@ router.use(cors({
 router.use(body_parse.json())
 
 router.post('/', auth.authDirector, transactionSpotController.create_transaction_spot)
+
 router.get('/all', auth.authDirector, transactionSpotController.get_all_transaction_spot)
+
 router.get('/:id', auth.authDirector, transactionSpotController.get_transaction_spot)
+
 router.put('/manager/:transaction_spot_id', auth.authDirector, transactionSpotController.set_manager)
+
 
 
 module.exports = router

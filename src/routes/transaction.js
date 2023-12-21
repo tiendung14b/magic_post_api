@@ -12,3 +12,5 @@ router.use(cors({
 router.use(body_parse.json())
 
 router.post('/', auth.authTransactionSpotEmployee, transactionController.create_transaction)
+
+module.exports = router

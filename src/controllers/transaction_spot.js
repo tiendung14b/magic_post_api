@@ -109,7 +109,12 @@ exports.remove_manager = async (req, res) => {
       return response.response_fail(res, response.NOT_FOUND, 'manager not found')
     }
     await TransactionSpot.findByIdAndUpdate(id, { transaction_manager: null })
-    await User.findByIdAndUpdate(manager._id, { $set: { 'workplace.workplace_id': undefined } })
+    await User.findByIdAndUpdate(manager._id, { $set: { 'workplace.workplace_id': null } })
+    return response.response_success(
+      res,
+      response.OK,
+      "remove transaction manager success"
+    );
   } catch (err) {
     err.file = 'transaction_spot.js'
     err.function = 'remove_manager'

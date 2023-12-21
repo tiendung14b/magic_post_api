@@ -1,5 +1,20 @@
 const mongoose = require('mongoose');
 
+const locationSchema = new mongoose.Schema({
+  city: {
+    type: String,
+    required: true
+  },
+  district: {
+    type: String,
+    required: true
+  },
+  detail: {
+    type: String,
+    required: true
+  }
+});
+
 const clientSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -7,9 +22,9 @@ const clientSchema = new mongoose.Schema({
   },
   email: String,
   address: {
-    type: String,
+    type: locationSchema,
     required: true
-  },
+  } ,
   phoneNumber: {
     type: String,
     required: true
@@ -52,7 +67,6 @@ const statusSchema = new mongoose.Schema({
 const transactionSchema = new mongoose.Schema({
   transaction_qr_tracker: {
     type: String,
-    required: true
   },
   sender: clientSchema,
   receiver: clientSchema,

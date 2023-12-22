@@ -25,7 +25,7 @@ const WarehouseSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Transaction'
   }],
-  unconfirm_transactions_from_transactionSpot: [{
+  unconfirm_transactions_from_transaction_spot: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Transaction'
   }],

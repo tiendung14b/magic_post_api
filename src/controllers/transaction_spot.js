@@ -4,6 +4,7 @@ const Warehouse = require('../models/Warehouse')
 const response = require('../utils/response')
 const geocode = require('../utils/geocode');
 const User = require('../models/User');
+const role = require('../utils/role');
 
 exports.create_transaction_spot = async (req, res) => {
   try {
@@ -110,9 +111,28 @@ exports.remove_manager = async (req, res) => {
     }
     await TransactionSpot.findByIdAndUpdate(id, { transaction_manager: null })
     await User.findByIdAndUpdate(manager._id, { $set: { 'workplace.workplace_id': undefined } })
+    return response.response_success(res, response.OK, 'remove manager success')
   } catch (err) {
     err.file = 'transaction_spot.js'
     err.function = 'remove_manager'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.get_all_employee = async (req, res) => {
+  try {
+    const id = req.params.transaction_spot_id
+    if (!id) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: transaction_spot_id is required')
+    }
+    const transactionSpot = await TransactionSpot.findById(id).populate('transaction_employees')
+    if (!transactionSpot) {
+      return response.response_fail(res, response.NOT_FOUND, 'transaction_spot not found')
+    }
+    return response.response_success(res, response.OK, transactionSpot.transaction_employees)
+  } catch (err) {
+    err.file = 'transaction_spot.js'
+    err.function = 'get_all_employee'
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
@@ -163,6 +183,52 @@ exports.get_from_client_transaction = async (req, res) => {
   }
 }
 
+exports.get_to_client_transaction = async (req, res) => {
+  try {
+    const id = req.params.transaction_spot_id
+    if (!id) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: transaction_spot_id is required')
+    }
+    const transaction_spot = await TransactionSpot.findById(id)
+    if (!transaction_spot) {
+      return response.response_fail(res, response.NOT_FOUND, 'transaction_spot not found')
+    }
+    const to_client_transactions = await Transaction.find({ _id: { $in: transaction_spot.to_client_transactions } })
+      .populate('sender')
+      .populate('receiver')
+      .populate('source_transaction_spot')
+      .populate('destination_transaction_spot')
+    return response.response_success(res, response.OK, to_client_transactions)
+  } catch (err) {
+    err.file = 'transaction_spot.js'
+    err.function = 'get_to_client_transaction'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.get_sending_history = async (req, res) => {
+  try {
+    const id = req.params.transaction_spot_id
+    if (!id) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: transaction_spot_id is required')
+    }
+    const transaction_spot = await TransactionSpot.findById(id)
+    if (!transaction_spot) {
+      return response.response_fail(res, response.NOT_FOUND, 'transaction_spot not found')
+    }
+    const sending_history = await Transaction.find({ _id: { $in: transaction_spot.sending_history } })
+      .populate('sender')
+      .populate('receiver')
+      .populate('source_transaction_spot')
+      .populate('destination_transaction_spot')
+    return response.response_success(res, response.OK, sending_history)
+  } catch (err) {
+    err.file = 'transaction_spot.js'
+    err.function = 'get_sending_history'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
 exports.send_to_warehouse = async (req, res) => {
   try {
     const { transaction_id, transaction_spot_id } = req.body
@@ -193,6 +259,103 @@ exports.send_to_warehouse = async (req, res) => {
   } catch (error) {
     error.file = 'transaction_spot.js'
     error.function = 'send_to_warehouse'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
+  }
+}
+
+exports.confirm_transaction = async (req, res) => {
+  try {
+    const { transaction_id, transaction_spot_id } = req.body
+    if (!transaction_id || !transaction_spot_id) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params')
+    }
+    const transactionSpot = await TransactionSpot.findById(transaction_spot_id)
+    if (!transactionSpot) {
+      return response.response_fail(res, response.NOT_FOUND, 'Transaction spot not found')
+    }
+    if (transactionSpot.from_client_transactions.indexOf(transaction_id) == -1) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Transaction not found')
+    }
+    await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
+      $pull: {
+        unconfirm_transactions: transaction_id
+      }
+    })
+    await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
+      $push: {
+        to_client_transactions: transaction_id
+      }
+    })
+    await Transaction.findByIdAndUpdate(transaction_id, {
+      $push: {
+        status: {
+          status: 'WAITING',
+          date: new Date(),
+          location: transactionSpot.name
+        }
+      }
+    })
+    return response.response_success(res, response.OK, 'Confirm transaction success')
+  } catch (error) {
+    error.file = 'transaction_spot.js'
+    error.function = 'confirm_transaction'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
+  }
+}
+
+exports.confirm_delivery = async (req, res) => {
+  try {
+    const { transaction_id, transaction_spot_id, status } = req.body
+    if (!transaction_id || !transaction_spot_id || !status) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params')
+    }
+    const transactionSpot = await TransactionSpot.findById(transaction_spot_id)
+    if (!transactionSpot) {
+      return response.response_fail(res, response.NOT_FOUND, 'Transaction spot not found')
+    }
+    if (transactionSpot.to_client_transactions.indexOf(transaction_id) == -1) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Transaction not found')
+    }
+    await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
+      $pull: {
+        to_client_transactions: transaction_id
+      }
+    })
+    if (status == "SUCCESS") {
+      await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
+        $push: {
+          success_transactions: transaction_id
+        }
+      })
+      await Transaction.findByIdAndUpdate(transaction_id, {
+        $push: {
+          status: {
+            status: 'SUCCESS',
+            date: new Date(),
+            location: transactionSpot.name
+          }
+        }
+      })
+    } else {
+      await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
+        $push: {
+          failed_transactions: transaction_id
+        }
+      })
+      await Transaction.findByIdAndUpdate(transaction_id, {
+        $push: {
+          status: {
+            status: 'FAILED',
+            date: new Date(),
+            location: transactionSpot.name
+          }
+        }
+      })
+    }
+    return response.response_success(res, response.OK, 'Confirm delivery success')
+  } catch (error) {
+    error.file = 'transaction_spot.js'
+    error.function = 'confirm_delivery'
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
   }
 }

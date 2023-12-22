@@ -116,11 +116,9 @@ exports.create_manager = async (req, res) => {
     }
     const checkResult = usefulStuff.checkField(user)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
-    User.create(user)
-      .then((data) => {
-        //mail.send_password('Cấp mật khẩu mới', req.password, user.email)
-        return response.response_success(res, response.CREATED, data)
-      })
+    await User.create(user)
+    mail.send_password('Cấp mật khẩu mới', req.password, user.email)
+    return response.response_success(res, response.CREATED, user)
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'create_warehouse_manager'
@@ -150,16 +148,7 @@ exports.create_warehouse_employee = async (req, res) => {
     const checkResult = usefulStuff.checkField(user)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
     const newUser = await User.create(user)
-      .then((data) => {
-        //mail.send_password('Cấp mật khẩu mới', req.password, user.email)
-        return data
-      })
-      /* .catch((err) => {
-        return response.response_fail(res, response.CONFLICT, err.message)
-      }) */
-    await Warehouse.findByIdAndUpdate(warehouse._id, { $addToSet: {warehouse_employees: newUser._id}})/* .catch((err) => {
-        return response.response_fail(res, response.CONFLICT, err)
-      }) */
+    await Warehouse.findByIdAndUpdate(warehouse._id, { $addToSet: {warehouse_employees: newUser._id}})
     return response.response_success(res, response.CREATED, newUser)
   } catch (err) {
     err.file = 'controller/user.js'
@@ -190,16 +179,8 @@ exports.create_transaction_employee = async (req, res) => {
     const checkResult = usefulStuff.checkField(user)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
     const newUser = await User.create(user)
-      .then((data) => {
-        //mail.send_password('Cấp mật khẩu mới', req.password, user.email)
-        return data
-      })
-      /* .catch((err) => {
-        return response.response_fail(res, response.CONFLICT, err.message)
-      }) */
-    await TransactionSpot.findByIdAndUpdate(transactionSpot._id, { $addToSet: {transaction_employees: newUser._id}}, null)/* .catch((err) => {
-        return response.response_fail(res, response.CONFLICT, err)
-      }) */
+    await TransactionSpot.findByIdAndUpdate(transactionSpot._id, { $addToSet: { transaction_employees: newUser._id } }, null)
+    mail.send_password('Cấp mật khẩu mới', req.password, user.email)
     return response.response_success(res, response.CREATED, newUser)
   } catch (err) {
     err.file = 'controller/user.js'

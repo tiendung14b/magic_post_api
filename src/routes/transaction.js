@@ -11,7 +11,7 @@ router.use(cors({
 
 router.use(body_parse.json())
 
-router.post('/', transactionController.create_transaction)
+router.post('/', auth.authTransactionSpotEmployee, transactionController.create_transaction)
 router.get('/get_info/:id', auth.authTransactionSpotEmployee, transactionController.get_transaction)
 
 module.exports = router

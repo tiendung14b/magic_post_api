@@ -7,10 +7,6 @@ const WarehouseSchema = new mongoose.Schema({
   location: {
     type: String,
   },
-  transaction_spots: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'TransactionSpot'
-  }],
   warehouse_manager: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -20,17 +16,34 @@ const WarehouseSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
-  // history of transactions received from transaction spot
+  transaction_spots: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TransactionSpot'
+  }],
+  // current transactions waiting to be delivered to here
+  unconfirm_transactions_from_warehouse: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction'
+  }],
+  unconfirm_transactions_from_transactionSpot: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction'
+  }],
+  // current transactions inside warehouse to deliver later
+  inwarehouse_transactions_to_warehouse: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction'
+  }],
+  inwarehouse_transactions_to_transaction_spot: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction'
+  }],
+  // history of transactions received from other places
   received_transactions_history: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Transaction'
   }],
-  // current transactions waiting to be delivered to transaction spot
-  unconfirm_transactions: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Transaction'
-  }],
-  // history of transactions sent to transaction spot
+  // history of transactions sent to other places
   sent_transactions_history: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Transaction'

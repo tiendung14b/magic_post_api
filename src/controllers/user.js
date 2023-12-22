@@ -78,6 +78,7 @@ exports.get_token = async (req, res) => {
     if (!dataUser) return response.response_fail(res, response.NOT_FOUND, 'Account not exist!')
     const match = await bcrypt.compare(user.password, dataUser.password)
     if (!match) return response.response_fail(res, response.NOT_FOUND, 'Password is incorrect.')
+    /* if (user.password != dataUser.password) return response.response_fail(res, response.NOT_FOUND, 'Password is incorrect.') */
     //  token includes 3 fields: _id, role, work_place
     //  client will decide what to do with role and load data from workplace
     const access_token = jwt.sign({
@@ -100,7 +101,6 @@ exports.create_manager = async (req, res) => {
     }
     req.password = (Math.random() + 1).toString(36).substring(6)
     const hash_password = await bcrypt.hash(req.password, 10)
-    const importantFields = ['last_name', 'first_name', 'email', 'phone_number', 'role']
     const user = {
       last_name: req.body.last_name,
       first_name: req.body.first_name,

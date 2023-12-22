@@ -17,36 +17,19 @@ route.use(cors({
   
 route.use(body_parse.json())
 
-route.post('/doSomething', auth.authWarehouseManager, async (req, res) => {
+route.post('/doSomething', async (req, res) => {
     try {
-        const warehouse = req.warehouse
-        await Warehouse.updateOne({_id: warehouse._id}, { $addToSet: {warehouse_employees: "656df0871d50d8be529c836a"}}, null).catch((err) => {
-            response.response_fail(res, response.CONFLICT, err)
-          })
+        const warehouse = {
+            name: 'test zone',
+            warehouse_manager: '000000000000000000000000'
+        }
+        await Warehouse.create(warehouse)
+
         response.response_success(res, response.CREATED, "You did it")
     } catch (err) {
         response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
     }
 })
-
-route.post('/create_director', async (req, res) => {
-    const { email, password, first_name, last_name, phone_number, workplace } = req.body
-    const hash_password = await bcrypt.hash(password, 10);
-    try {
-        const user = await User.create({
-            email,
-            password: hash_password,
-            first_name,
-            last_name,
-            phone_number,
-            workplace
-        })
-        response.response_success(res, response.OK, user)
-    } catch (err) {
-        response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
-    }
-})
-
 
 route.post('/testR', auth.authWarehouseManager)
 

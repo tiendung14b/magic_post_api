@@ -51,6 +51,18 @@ exports.get_all_warehouse = async (req, res) => {
   }
 };
 
+exports.get_my_warehouse = async (req, res) => {
+  try {
+    if (!req.warehouse) return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
+    const warehouse = await Warehouse.findById(req.warehouse._id).populate('warehouse_employees').populate('received_transactions_history').populate('sent_transactions_history')
+    return response.response_success(res, response.OK, warehouse)
+  } catch (err) {
+    err.file = 'warehouse.js'
+    err.function = 'get_my_warehouse'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
 exports.set_manager = async (req, res) => {
   try {
     const id = req.params.warehouse_id
@@ -76,7 +88,7 @@ exports.set_manager = async (req, res) => {
       return response.response_fail(res, response.BAD_REQUEST, 'warehouse already have manager')
     }
     await Warehouse.findByIdAndUpdate(id, { warehouse_manager: manager_id })
-    await User.findByIdAndUpdate(manager_id, { $set: { 'workplace?.workplace_id': id, 'workplace?.workplace_name': 'WAREHOUSE' } })
+    await User.findByIdAndUpdate(manager_id, { $set: { 'workplace.workplace_id': id, 'workplace.workplace_name': 'WAREHOUSE' } })
     return response.response_success(res, response.OK, 'set warehouse manager success')
   } catch (err) {
     err.file = 'warehouse.js'
@@ -84,4 +96,111 @@ exports.set_manager = async (req, res) => {
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }
+
+exports.remove_manager = async (req, res) => {
+  try {
+    const id = req.params.warehouse_id
+    if (!id) {
+      return response.response_fail(res, response.BAD_REQUEST, 'warehouse_id is required')
+    }
+    const warehouse = await Warehouse.findById(id)
+    if (!warehouse) {
+      return response.response_fail(res, response.BAD_REQUEST, 'warehouse not found')
+    }
+    const manager = await User.findById(warehouse.warehouse_manager)
+    if (!manager) {
+      return response.response_fail(res, response.NOT_FOUND, 'warehouse manager not found')
+    }
+    await Warehouse.findByIdAndUpdate(warehouse._id, { warehouse_manager: null })
+    await User.findByIdAndUpdate(manager._id, { $set: { 'workplace.workplace_id': null } })
+    return response.response_success(res, response.OK, 'remove manager from warehouse success')
+  } catch (err) {
+    err.file = 'warehouse.js'
+    err.function = 'remove_manager'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.send_transaction_to_warehouse = async (req, res) => {
+  try {
+    if (!req.warehouse) return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
+    const warehouse = req.warehouse
+    if (!req.params.transaction_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: transaction_id')
+    const transaction = await Transaction.findById(req.params.transaction_id)
+    if (!transaction) return response.response_fail(res, response.NOT_FOUND, 'transaction not found')
+    if (!warehouse.inwarehouse_transactions_to_warehouse.includes(transaction._id)) return response.response_fail(res, response.NOT_FOUND, 'transaction not in warehouse list to ship to warehouse')
+    const destination_transaction_spot = await TransactionSpot.findById(transaction.destination_transaction_spot)
+    if (!destination_transaction_spot) return response.response_fail(res, response.NOT_FOUND, 'transaction doesnt have destination transaction spot')
+    if (!destination_transaction_spot.warehouse) return response.response_fail(res, response.NOT_FOUND, 'destination transaction spot doesnt have warehouse')
+    await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { inwarehouse_transactions_to_warehouse: transaction._id }, $addToSet: { sent_transactions_history: transaction._id } })
+    await Warehouse.findByIdAndUpdate(destination_transaction_spot.warehouse, { $addToSet: { unconfirm_transactions_from_warehouse: transaction._id } })
+    return response.response_success(res, response.OK, 'ship transaction from this warehouse to destination warehouse')
+  } catch (err) {
+    err.file = 'warehouse.js'
+    err.function = 'send_transaction_to_warehouse'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.send_transaction_to_transaction_spot = async (req, res) => {
+  try {
+    if (!req.warehouse) return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
+    const warehouse = req.warehouse
+    if (!req.params.transaction_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: transaction_id')
+    const transaction = await Transaction.findById(req.params.transaction_id)
+    if (!transaction) return response.response_fail(res, response.NOT_FOUND, 'transaction not found')
+    if (!transaction.destination_transaction_spot) return response.response_fail(res, response.NOT_FOUND, 'transaction doesnt have destination transaction spot')
+    if (!warehouse.inwarehouse_transactions_to_transaction_spot.includes(transaction._id)) return response.response_fail(res, response.NOT_FOUND, 'transaction not in warehouse list to ship to transaction spot')
+    await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { inwarehouse_transactions_to_transaction_spot: transaction._id }, $addToSet: { sent_transactions_history: transaction._id } })
+    await TransactionSpot.findByIdAndUpdate(transaction.destination_transaction_spot, { $addToSet: { unconfirm_transactions: transaction._id } })
+    return response.response_success(res, response.OK, 'ship transaction from this warehouse to destination transaction spot')
+  } catch (err) {
+    err.file = 'warehouse.js'
+    err.function = 'send_transaction_to_transaction_spot'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.receive_transaction_from_warehouse = async (req, res) => {
+  try {
+    if (!req.warehouse) return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
+    const warehouse = req.warehouse
+    if (!req.params.transaction_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: transaction_id')
+    const transaction = await Transaction.findById(req.params.transaction_id)
+    if (!transaction) return response.response_fail(res, response.NOT_FOUND, 'transaction not found')
+    if (!transaction.destination_transaction_spot) return response.response_fail(res, response.NOT_FOUND, 'transaction doesnt have destination transaction spot')
+    if (!warehouse.unconfirm_transactions_from_warehouse.includes(transaction._id)) return response.response_fail(res, response.NOT_FOUND, 'transaction not in waiting from warehouse list')
+    if (!warehouse.transaction_spots.includes(transaction.destination_transaction_spot)) {
+      await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { unconfirm_transactions_from_warehouse: transaction._id },  $addToSet: { inwarehouse_transactions_to_warehouse: transaction._id, received_transactions_history: transaction._id }})
+      return response.response_fail(res, response.BAD_REQUEST, 'this warehouse doesnt have destination transaction spot, redirect to another warehouse')
+    } else await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { unconfirm_transactions_from_warehouse: transaction._id },  $addToSet: { inwarehouse_transactions_to_transaction_spot: transaction._id }})
+    return response.response_success(res, response.OK, 'received. Ready to ship to destination transaction spot')
+  } catch (err) {
+    err.file = 'warehouse.js'
+    err.function = 'receive_transaction_from_warehouse '
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.receive_transaction_from_transaction_spot = async (req, res) => {
+  try {
+    if (!req.warehouse) return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
+    const warehouse = req.warehouse
+    if (!req.params.transaction_id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: transaction_id')
+    const transaction = await Transaction.findById(req.params.transaction_id)
+    if (!transaction) return response.response_fail(res, response.NOT_FOUND, 'transaction not found')
+    if (!transaction.destination_transaction_spot) return response.response_fail(res, response.NOT_FOUND, 'transaction doesnt have destination transaction spot')
+    if (!warehouse.unconfirm_transactions_from_transaction_spot.includes(transaction._id)) return response.response_fail(res, response.NOT_FOUND, 'transaction not in waiting from transaction spot list')
+    if (!warehouse.transaction_spots.includes(transaction.destination_transaction_spot)) {
+      await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { unconfirm_transactions_from_transaction_spot: transaction._id },  $addToSet: { inwarehouse_transactions_to_warehouse: transaction._id, received_transactions_history: transaction._id }})
+      return response.response_success(res, response.OK, 'this warehouse doesnt have destination transaction spot, redirect to another warehouse')
+    } else await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { unconfirm_transactions_from_transaction_spot: transaction._id },  $addToSet: { inwarehouse_transactions_to_transaction_spot: transaction._id }})
+    return response.response_success(res, response.OK, 'received. Ready to ship to destination transaction spot')
+  } catch (err) {
+    err.file = 'warehouse.js'
+    err.function = 'receive_transaction_from_transaction_spot '
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
 

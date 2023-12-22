@@ -71,6 +71,7 @@ exports.authWarehouseEmployee = async (req, res, next) => {
         return response.response_fail(res, response.FORBIDDEN, 'forbidden request')
       }
       req.user = user
+      req.warehouse = warehouse
       next()
     } catch (err) {
       response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
@@ -125,6 +126,7 @@ exports.authTransactionSpotEmployee = async (req, res, next) => {
         return response.response_fail(res, response.FORBIDDEN, 'forbidden request')
       }
       req.user = user
+      req.transactionSpot = transactionSpot
       next()
     } catch (err) {
       response.response_error(res, response.INTERNAL_SERVER_ERROR, err)

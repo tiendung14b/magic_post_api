@@ -88,7 +88,7 @@ exports.set_manager = async (req, res) => {
       return response.response_fail(res, response.BAD_REQUEST, 'warehouse already have manager')
     }
     await Warehouse.findByIdAndUpdate(id, { warehouse_manager: manager_id })
-    await User.findByIdAndUpdate(manager_id, { $set: { 'workplace?.workplace_id': id, 'workplace?.workplace_name': 'WAREHOUSE' } })
+    await User.findByIdAndUpdate(manager_id, { $set: { 'workplace.workplace_id': id, 'workplace.workplace_name': 'WAREHOUSE' } })
     return response.response_success(res, response.OK, 'set warehouse manager success')
   } catch (err) {
     err.file = 'warehouse.js'

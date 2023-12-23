@@ -54,7 +54,21 @@ exports.get_all_warehouse = async (req, res) => {
 exports.get_my_warehouse = async (req, res) => {
   try {
     if (!req.warehouse) return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
-    const warehouse = await Warehouse.findById(req.warehouse._id).populate('warehouse_employees').populate('received_transactions_history').populate('sent_transactions_history')
+    const populateField = ['warehouse_employees', 'received_transactions_history', 'sent_transactions_history', 'transaction_spots']
+    const warehouse = await Warehouse.findById(req.warehouse._id).populate(populateField)
+    return response.response_success(res, response.OK, warehouse)
+  } catch (err) {
+    err.file = 'warehouse.js'
+    err.function = 'get_my_warehouse'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.get_employee_warehouse = async (req, res) => {
+  try {
+    if (!req.warehouse) return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
+    const populateField = ['unconfirm_transactions_from_warehouse', 'unconfirm_transactions_from_transaction_spot', 'inwarehouse_transactions_to_warehouse', 'inwarehouse_transactions_to_transaction_spot']
+    const warehouse = await Warehouse.findById(req.warehouse._id).populate(populateField)
     return response.response_success(res, response.OK, warehouse)
   } catch (err) {
     err.file = 'warehouse.js'

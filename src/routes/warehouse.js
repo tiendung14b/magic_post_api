@@ -21,6 +21,8 @@ router.delete('/manager/:warehouse_id', auth.authDirector, warehouseController.r
 
 router.get('/my_warehouse', auth.authWarehouseManager, warehouseController.get_my_warehouse)
 
+router.get('employee_warehouse', auth.authWarehouseEmployee, warehouseController.get_employee_warehouse)
+
 router.get('/:id', auth.authDirector, warehouseController.get_warehouse)
 
 router.put('/transaction_from_warehouse/:transaction_id', auth.authWarehouseEmployee, warehouseController.receive_transaction_from_warehouse)

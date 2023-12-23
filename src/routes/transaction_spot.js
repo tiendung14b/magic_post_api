@@ -32,6 +32,5 @@ router.get('/get_from_client_transactions/:transaction_spot_id', transactionSpot
 router.get('/get_unconfirmed/:transaction_spot_id', auth.authWarehouseEmployee, transactionSpotController.get_unconfirmed_transaction)
 router.get('/get_to_client_transactions/:transaction_spot_id', transactionSpotController.get_to_client_transaction)
 router.get('/sending_history/:transaction_spot_id', transactionSpotController.get_sending_history)
-router.get('/get_all_delivery_transaction/:transaction_spot_id', auth.authTransactionSpotEmployee, transactionSpotController.get_all_delivery)
 
 module.exports = router

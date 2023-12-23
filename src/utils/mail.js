@@ -28,7 +28,7 @@ exports.send_password = async (subject, content, email_target) => {
         <p>Mật khẩu mới của bạn là: <b>${content}</b></p>
         <p>Trân trọng,</p>
         <p>Magic Post</p>
-        <img src="https://i.imgur.com/ctJvI6P.jpg" />`,
+        <img src="https://i.pinimg.com/736x/be/f8/a8/bef8a85dbd73a4adcd609cdea81f0869.jpg" />`,
     });
   } catch (err) {
     err.file = 'utils/mail.js'

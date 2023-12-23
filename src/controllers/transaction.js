@@ -48,17 +48,26 @@ exports.create_transaction = async (req, res) => {
     if (!sender || !receiver || !list_package || !source_transaction_spot || !transaction_type) {
       return response.response_fail(res, response.BAD_REQUEST, 'Missing field')
     }
+    const source_transaction_spot_info = await TransactionSpot.findById(source_transaction_spot)
+    if (!source_transaction_spot_info) {
+      return response.response_fail(res, response.NOT_FOUND, "Invalid source transaction spot id")
+    }
     // all transaction spot except source transaction spot
     const { nearest_transaction_spot, min_distance } = await find_nearest_transaction_spot(
       receiver.address.detail + ', ' + receiver.address.district + ', ' + receiver.address.city
     )
-    if (!nearest_transaction_spot) {
+    if (!nearest_transaction_spot || min_distance == Infinity || min_distance > 10000) {
       return response.response_fail(res, response.NOT_FOUND, 'Địa điểm nhận hàng chưa được hỗ trợ')
     }
     const destination_transaction_spot = nearest_transaction_spot._id
     const shipping_cost = min_distance * COST_PER_METRE
     if (!destination_transaction_spot) {
       return response.response_fail(res, response.NOT_FOUND, 'Địa điểm gửi hàng chưa được hỗ trợ')
+    }
+    const status = {
+      status: 'WAITING',
+      date: new Date(),
+      location: source_transaction_spot.name
     }
     const data = await Transaction.create({
       sender,
@@ -68,7 +77,8 @@ exports.create_transaction = async (req, res) => {
       destination_transaction_spot,
       transaction_type,
       shipping_cost,
-      prepaid
+      prepaid,
+      status: [status]
     })
     await TransactionSpot.findByIdAndUpdate(source_transaction_spot, {
       $push: {

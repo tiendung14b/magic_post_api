@@ -14,7 +14,7 @@ router.use(body_parse.json())
 
 router.post('/', auth.authDirector, transactionSpotController.create_transaction_spot)
 
-router.get('/get_info/:id', auth.authDirector, transactionSpotController.get_transaction_spot)
+router.get('/get_info/:id', auth.authToken, transactionSpotController.get_transaction_spot)
 
 router.get('/get_all', auth.authDirector, transactionSpotController.get_all_transaction_spot)
 

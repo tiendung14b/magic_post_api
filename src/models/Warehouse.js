@@ -1,5 +1,16 @@
 const mongoose = require('mongoose');
 
+const historySchema = new mongoose.Schema({
+  transaction: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction'
+  },
+  time: {
+    type: Date,
+    default: Date.now()
+  }
+});
+
 const WarehouseSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -39,15 +50,9 @@ const WarehouseSchema = new mongoose.Schema({
     ref: 'Transaction'
   }],
   // history of transactions received from other places
-  received_transactions_history: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Transaction'
-  }],
+  received_transactions_history: [historySchema],
   // history of transactions sent to other places
-  sent_transactions_history: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Transaction'
-  }]
+  sent_transactions_history: [historySchema]
 });
 
 const Warehouse = mongoose.model('Warehouse', WarehouseSchema);

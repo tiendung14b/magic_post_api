@@ -15,7 +15,7 @@ exports.create_warehouse = async (req, res) => {
     await Warehouse.create({
       name,
       location,
-        
+
       transaction_spots: [],
       warehouse_manager,
       warehouse_employees: []
@@ -30,7 +30,7 @@ exports.create_warehouse = async (req, res) => {
 
 exports.get_warehouse = async (req, res) => {
   try {
-    if(!req.params.id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: warehouse id')
+    if (!req.params.id) return response.response_fail(res, response.BAD_REQUEST, 'Missing params: warehouse id')
     const warehouse = await Warehouse.findById(req.params.id).populate('warehouse_manager').populate('warehouse_employees').populate('transaction_spots')
     return response.response_success(res, response.OK, warehouse)
   } catch (err) {
@@ -210,8 +210,8 @@ exports.receive_transaction_from_warehouse = async (req, res) => {
     }
     const warehouse_has_transaction_spot = warehouse.transaction_spots.includes(transaction.destination_transaction_spot)
     if (!warehouse_has_transaction_spot) {
-      await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { unconfirm_transactions_from_warehouse: transaction._id },  $addToSet: { inwarehouse_transactions_to_warehouse: transaction._id, received_transactions_history: newHistory }})
-    } else await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { unconfirm_transactions_from_warehouse: transaction._id },  $addToSet: { inwarehouse_transactions_to_transaction_spot: transaction._id, received_transactions_history: newHistory }})
+      await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { unconfirm_transactions_from_warehouse: transaction._id }, $addToSet: { inwarehouse_transactions_to_warehouse: transaction._id, received_transactions_history: newHistory } })
+    } else await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { unconfirm_transactions_from_warehouse: transaction._id }, $addToSet: { inwarehouse_transactions_to_transaction_spot: transaction._id, received_transactions_history: newHistory } })
     const newStatus = {
       status: 'SUCCESS',
       date: Date.now(),
@@ -241,8 +241,8 @@ exports.receive_transaction_from_transaction_spot = async (req, res) => {
     }
     const warehouse_has_transaction_spot = warehouse.transaction_spots.includes(transaction.destination_transaction_spot)
     if (!warehouse_has_transaction_spot) {
-      await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { unconfirm_transactions_from_transaction_spot: transaction._id },  $addToSet: { inwarehouse_transactions_to_warehouse: transaction._id, received_transactions_history: newHistory }})
-    } else await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { unconfirm_transactions_from_transaction_spot: transaction._id },  $addToSet: { inwarehouse_transactions_to_transaction_spot: transaction._id, received_transactions_history: newHistory }})
+      await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { unconfirm_transactions_from_transaction_spot: transaction._id }, $addToSet: { inwarehouse_transactions_to_warehouse: transaction._id, received_transactions_history: newHistory } })
+    } else await Warehouse.findByIdAndUpdate(warehouse._id, { $pull: { unconfirm_transactions_from_transaction_spot: transaction._id }, $addToSet: { inwarehouse_transactions_to_transaction_spot: transaction._id, received_transactions_history: newHistory } })
     const newStatus = {
       status: 'SUCCESS',
       date: Date.now(),

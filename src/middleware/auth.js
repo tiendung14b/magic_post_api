@@ -27,6 +27,7 @@ exports.authDirector = (req, res, next) => {
 
 exports.authWarehouseManager = async (req, res, next) => {
   const token = req.headers.access_token
+  console.log(token)
   if (!token) 
     return response.response_fail(res, response.UNAUTHORIZED, 'unauthorized')
   let user = undefined
@@ -93,9 +94,6 @@ exports.authTransactionSpotManager = async (req, res, next) => {
       // check if this user can access to warehouse or not
       const transactionSpot = await TransactionSpot.findById(user.workplace.workplace_id)
       if (!transactionSpot) return response.response_fail(res, response.NOT_FOUND, 'invalid transactionSpot_id')
-      if (transactionSpot.transaction_manager != user._id) {
-        return response.response_fail(res, response.FORBIDDEN, 'forbidden request')
-      }
       // const transactionSpot = await TransactionSpot.findOne({ transaction_manager: user._id })
       // if (!transactionSpot) return response.response_fail(res, response.NOT_FOUND, 'manager is transactionSpotless')
       req.user = user

@@ -99,6 +99,7 @@ exports.create_manager = async (req, res) => {
     if (existData) {
       return response.response_fail(res, response.CONFLICT, 'Phone number already exist.')
     }
+    console.log(req.body)
     req.password = (Math.random() + 1).toString(36).substring(6)
     const hash_password = await bcrypt.hash(req.password, 10)
     const user = {

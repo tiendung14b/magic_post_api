@@ -344,7 +344,7 @@ response: redirect to warehouse or transaction spot message
 PUT warehouse/transaction_to_warehouse/:transaction_id  
 require warehouse employee token, transaction id in request url  
 
-send transaction from inwarehouse_transactions_to_warehouse, put in other warehouses'unconfirm_transactions_from_warehouse
+send transaction from inwarehouse_transactions_to_warehouse, put in other warehouses'unconfirm_transactions_from_warehouse  
 log sent_transactions_history and update transaction.status
 
 body: no need
@@ -356,7 +356,7 @@ response: success message
 PUT warehouse/transaction_to_transaction_spot/:transaction_id  
 require warehouse employee token, transaction id in request url  
 
-send transaction from inwarehouse_transactions_to_transaction_spot, put in other transaction spots'unconfirm_transactions
+send transaction from inwarehouse_transactions_to_transaction_spot, put in other transaction spots'unconfirm_transactions  
 log sent_transactions_history and update transaction.status
 
 body: no need

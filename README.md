@@ -52,6 +52,8 @@ Error:
 }
 ```
 
+# User route
+
 ## `user::Get token`
 
 POST /user/get_token  
@@ -265,3 +267,98 @@ require transaction manager token, employee id in request url
 
 response: success message
 
+# Warehouse route
+
+## `warehouse::model`
+
+```Javascript
+{
+  name: String,
+  location: String,
+  warehouse_manager: ObjectId,
+  warehouse_employees: [ObjectId],
+  transaction_spots: [ObjectId],
+  // current transactions waiting to be delivered to here
+  unconfirm_transactions_from_warehouse: [ObjectId],
+  unconfirm_transactions_from_transaction_spot: [ObjectId],
+  // current transactions inside warehouse to deliver to other place
+  inwarehouse_transactions_to_warehouse: [ObjectId],
+  inwarehouse_transactions_to_transaction_spot: [ObjectId],
+  // history of transactions received from other places
+  received_transactions_history: [{
+    transaction: ObjectId,
+    time: Date
+  }],
+  // history of transactions sent to other places
+  sent_transactions_history: [{
+    transaction: ObjectId,
+    time: Date
+  }]
+}
+```
+
+## `warehouse::get_my_warehouse`
+
+GET warehouse/my_warehouse  
+require warehouse manager token
+
+return warehouse of current manager
+
+response: warehouse document with populated fields: employee, received/sent history, transaction spots
+
+## `warehouse::get_employee_warehouse`
+
+GET warehouse/employee_warehouse  
+require warehouse employee token
+
+return warehouse of current employee
+
+response: warehouse document with populated fields: unconfirm transactions, inwarehouse_transactions
+
+## `warehouse::receive_transaction_from_warehouse`
+
+PUT warehouse/transaction_from_warehouse/:transaction_id  
+require warehouse employee token, transaction id in request url  
+
+accept transaction from unconfirm_transactions_from_warehouse, put in inwarehouse_transactions  
+log received_transactions_history and update transaction.status  
+
+body: no need
+
+response: redirect to warehouse or transaction spot message
+
+## `warehouse::receive_transaction_from_transaction_spot`
+
+PUT warehouse/transaction_from_transaction_spot/:transaction_id  
+require warehouse employee token, transaction id in request url  
+
+accept transaction from unconfirm_transactions_from_transaction_spot, put in inwarehouse_transactions  
+log received_transactions_history and update transaction.status    
+
+body: no need
+
+response: redirect to warehouse or transaction spot message
+
+## `warehouse::send_transaction_to_warehouse`
+
+PUT warehouse/transaction_to_warehouse/:transaction_id  
+require warehouse employee token, transaction id in request url  
+
+send transaction from inwarehouse_transactions_to_warehouse, put in other warehouses'unconfirm_transactions_from_warehouse  
+log sent_transactions_history and update transaction.status
+
+body: no need
+
+response: success message
+
+## `warehouse::send_transaction_to_transaction_spot`
+
+PUT warehouse/transaction_to_transaction_spot/:transaction_id  
+require warehouse employee token, transaction id in request url  
+
+send transaction from inwarehouse_transactions_to_transaction_spot, put in other transaction spots'unconfirm_transactions  
+log sent_transactions_history and update transaction.status
+
+body: no need
+
+response: success message

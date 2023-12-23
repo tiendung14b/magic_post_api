@@ -28,13 +28,20 @@ exports.create_transaction_spot = async (req, res) => {
     }
     location.lat = geocodeInfo.lat;
     location.long = geocodeInfo.lon;
-    await TransactionSpot.create({
+    const transactionSpot = await TransactionSpot.create({
       name,
       location,
       postal_code: geocodeInfo.postcode,
       warehouse,
       transaction_manager,
       transaction_employees: [],
+    });
+    await User.findByIdAndUpdate(transaction_manager, {
+      $set: {
+        "workplace.workplace_id": transactionSpot._id,
+        "workplace.workplace_name": "TRANSACTION",
+        "workplace.role": role.TRANSACTION_MANAGER,
+      },
     });
     return response.response_success(
       res,

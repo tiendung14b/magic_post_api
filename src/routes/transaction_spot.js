@@ -21,7 +21,7 @@ router.get('/get_all', auth.authDirector, transactionSpotController.get_all_tran
 router.put('/set_manager/:transaction_spot_id', auth.authDirector, transactionSpotController.set_manager)
 router.delete('/remove_manager/:transaction_spot_id', auth.authDirector, transactionSpotController.remove_manager)
 
-router.get('/get_all_employee/:transaction_spot_id', auth.authTransactionSpotEmployee, transactionSpotController.get_all_employee)
+router.get('/get_all_employee/:transaction_spot_id', auth.authTransactionSpotManager, transactionSpotController.get_all_employee)
 
 
 router.post('/send_to_warehouse', auth.authTransactionSpotEmployee, transactionSpotController.send_to_warehouse)

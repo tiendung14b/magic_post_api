@@ -2,6 +2,9 @@ const response = require('../utils/response')
 const Transaction = require('../models/Transaction')
 const TransactionSpot = require('../models/TransactionSpot')
 const geocode = require('../utils/geocode')
+const qrcode = require('qrcode')
+const axios = require('axios')
+const uploadImage = require('../utils/upload_image')
 
 const COST_PER_METRE = 100
 
@@ -38,6 +41,7 @@ const find_nearest_transaction_spot = async (address) => {
 exports.create_transaction = async (req, res) => {
   try {
     const {
+      transaction_qr_tracker,
       sender,
       receiver,
       list_package,
@@ -85,7 +89,12 @@ exports.create_transaction = async (req, res) => {
         from_client_transactions: data._id
       }
     })
-    return response.response_success(res, response.OK, data)
+    let qr_code = await qrcode.toDataURL(transaction_qr_tracker + data._id.toString())
+    const url = await uploadImage(qr_code)
+    await User.findByIdAndUpdate(data._id, {
+      transaction_qr_tracker: url
+    })
+    return response.response_success(res, response.OK, {...data, transaction_qr_tracker: url})
   } catch (error) {
     error.file = 'transaction_spot.js'
     error.function = 'create_transaction'

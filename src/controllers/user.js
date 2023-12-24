@@ -193,13 +193,15 @@ exports.create_transaction_employee = async (req, res) => {
 
 exports.update_password = async (req, res) => {
   try {
-    const user = req.user
-    if (!req.body.password) return response.response_fail(res, response.BAD_REQUEST, 'Missing new password')
-    if (user.password === req.body.password) return response.response_fail(res, response.BAD_REQUEST, 'new password is the same as old one')
-    await User.findByIdAndUpdate(user._id, {password: req.body.password})/* .catch((err) => {
-      return response.response_fail(res, response.CONFLICT, err)
-    }) */
-    return response.response_success(res, response.OK, 'successfully update password')
+    const { phone_number, old_password, new_password } = req.body
+    if (!old_password || !new_password) {
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing required fields.')
+    }
+    const user = await User.findOne({ phone_number: phone_number })
+    const match = await bcrypt.compare(old_password, user.password)
+    if (!match) return response.response_fail(res, response.NOT_FOUND, 'Password is incorrect.')
+    await User.findOneAndUpdate({ phone_number: phone_number }, { password: await bcrypt.hash(new_password, 10) })
+    return response.response_success(res, response.OK, 'Update password successfully')
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'update_password'

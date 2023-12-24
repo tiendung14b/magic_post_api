@@ -71,7 +71,7 @@ exports.create_transaction = async (req, res) => {
     const status = {
       status: 'WAITING',
       date: new Date(),
-      location: source_transaction_spot.name
+      location: source_transaction_spot_info.name
     }
     const data = await Transaction.create({
       sender,
@@ -91,7 +91,7 @@ exports.create_transaction = async (req, res) => {
     })
     let qr_code = await qrcode.toDataURL(transaction_qr_tracker + data._id.toString())
     const url = await uploadImage(qr_code)
-    await User.findByIdAndUpdate(data._id, {
+    await Transaction.findByIdAndUpdate(data._id, {
       transaction_qr_tracker: url
     })
     return response.response_success(res, response.OK, {...data, transaction_qr_tracker: url})

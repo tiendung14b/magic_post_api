@@ -1,5 +1,6 @@
 const { default: mongoose } = require('mongoose')
 const moongoose = require('mongoose')
+const { reset } = require('nodemon')
 
 const workplaceSchema = new moongoose.Schema({
   workplace_name: {
@@ -45,6 +46,7 @@ const userSchema = new moongoose.Schema({
     type: String,
     required: true
   },
+  reset_password_token: String,
   workplace: {
     type: workplaceSchema,
   },

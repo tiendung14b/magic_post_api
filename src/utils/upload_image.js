@@ -1,3 +1,5 @@
+const axios = require("axios");
+
 const uploadImage = async (file) => {
   const cloudname = "dixxfsshj";
   const upload_preset = "magic_post_uet";

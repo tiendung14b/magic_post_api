@@ -149,6 +149,7 @@ exports.create_warehouse_employee = async (req, res) => {
     const checkResult = usefulStuff.checkField(user)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
     const newUser = await User.create(user)
+    mail.send_password('Cấp mật khẩu mới', req.password, user.email)
     await Warehouse.findByIdAndUpdate(warehouse._id, { $addToSet: {warehouse_employees: newUser._id}})
     return response.response_success(res, response.CREATED, newUser)
   } catch (err) {

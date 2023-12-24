@@ -403,7 +403,10 @@ exports.send_to_warehouse = async (req, res) => {
     });
     await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
       $push: {
-        sending_history: transaction_id,
+        sending_history: {
+          date: Date.now(),
+          transaction_id
+        },
       },
     });
     await Warehouse.findByIdAndUpdate(warehouse._id, {
@@ -514,14 +517,17 @@ exports.confirm_delivery = async (req, res) => {
     if (status == "SUCCESS") {
       await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
         $push: {
-          success_transactions: transaction_id,
+          success_transactions: {
+            transaction_id,
+            date: Date.now(),
+          }
         },
       });
       await Transaction.findByIdAndUpdate(transaction_id, {
         $push: {
           status: {
             status: "SUCCESS",
-            date: new Date(),
+            date: Date.now(),
             location: transactionSpot.name,
           },
         },
@@ -529,14 +535,17 @@ exports.confirm_delivery = async (req, res) => {
     } else {
       await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
         $push: {
-          failed_transactions: transaction_id,
+          failed_transactions: {
+            transaction_id,
+            date: Date.now(),
+          }
         },
       });
       await Transaction.findByIdAndUpdate(transaction_id, {
         $push: {
           status: {
             status: "FAILED",
-            date: new Date(),
+            date: Date.now(),
             location: transactionSpot.name,
           },
         },

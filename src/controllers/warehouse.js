@@ -88,7 +88,7 @@ exports.get_my_warehouse = async (req, res) => {
 exports.get_employee_warehouse = async (req, res) => {
   try {
     const id = req.params.warehouse_id;
-    const warehouse = await Warehouse.findById(id).populate('warehouse_employees').populate('transaction_spots');
+    const warehouse = await Warehouse.findById(id).populate('warehouse_employees');
     return response.response_success(res, response.OK, warehouse.warehouse_employees)
   } catch (err) {
     err.file = "warehouse.js"

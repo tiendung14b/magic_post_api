@@ -118,7 +118,7 @@ exports.create_manager = async (req, res) => {
     const checkResult = usefulStuff.checkField(user)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
     await User.create(user)
-    mail.send_password('Cấp mật khẩu mới', req.password, user.email)
+    mail.send_password(req.password, user.email)
     return response.response_success(res, response.CREATED, user)
   } catch (err) {
     err.file = 'controller/user.js'
@@ -149,7 +149,7 @@ exports.create_warehouse_employee = async (req, res) => {
     const checkResult = usefulStuff.checkField(user)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
     const newUser = await User.create(user)
-    mail.send_password('Cấp mật khẩu mới', req.password, user.email)
+    mail.send_password(req.password, user.email)
     await Warehouse.findByIdAndUpdate(warehouse._id, { $addToSet: {warehouse_employees: newUser._id}})
     return response.response_success(res, response.CREATED, newUser)
   } catch (err) {
@@ -182,7 +182,7 @@ exports.create_transaction_employee = async (req, res) => {
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
     const newUser = await User.create(user)
     await TransactionSpot.findByIdAndUpdate(transactionSpot._id, { $addToSet: { transaction_employees: newUser._id } }, null)
-    mail.send_password('Cấp mật khẩu mới', req.password, user.email)
+    mail.send_password(req.password, user.email)
     return response.response_success(res, response.CREATED, newUser)
   } catch (err) {
     err.file = 'controller/user.js'

@@ -23,6 +23,18 @@ router.get('/my_warehouse', auth.authWarehouseManager, warehouseController.get_m
 
 router.get('/employee_warehouse/:warehouse_id', auth.authWarehouseManager, warehouseController.get_employee_warehouse)
 
+router.get('/received_transactions_history', auth.authWarehouseManager, warehouseController.get_received_transactions_history)
+
+router.get('/sent_transactions_history', auth.authWarehouseManager, warehouseController.get_sent_transactions_history)
+
+router.get('/unconfirm_transactions_from_warehouse', auth.authWarehouseEmployee, warehouseController.get_unconfirm_transactions_from_warehouse)
+
+router.get('/unconfirm_transactions_from_transaction_spot', auth.authWarehouseEmployee, warehouseController.get_unconfirm_transactions_from_transaction_spot)
+
+router.get('/inwarehouse_transactions_to_warehouse', auth.authWarehouseEmployee, warehouseController.get_inwarehouse_transactions_to_warehouse)
+
+router.get('/inwarehouse_transactions_to_transaction_spot', auth.authWarehouseEmployee, warehouseController.get_inwarehouse_transactions_to_transaction_spot)
+
 router.get('/:id', auth.authDirector, warehouseController.get_warehouse)
 
 router.put('/transaction_from_warehouse/:transaction_id', auth.authWarehouseEmployee, warehouseController.receive_transaction_from_warehouse)

@@ -75,8 +75,8 @@ exports.get_my_warehouse = async (req, res) => {
         response.INTERNAL_SERVER_ERROR, 
         'auth middleware didnt pass warehouse doc'
       );
-    const populateField = ['warehouse_employees', 'received_transactions_history', 'sent_transactions_history', 'transaction_spots']
-    const warehouse = await Warehouse.findById(req.warehouse._id).populate(populateField).populate('warehouse_manager').populate('warehouse_employees').populate('transaction_spots');
+    const populateField = ['warehouse_manager', 'warehouse_employees', 'transaction_spots']
+    const warehouse = await Warehouse.findById(req.warehouse._id).populate(populateField);
     return response.response_success(res, response.OK, warehouse)
   } catch (err) {
     err.file = "warehouse.js"
@@ -92,8 +92,192 @@ exports.get_employee_warehouse = async (req, res) => {
     return response.response_success(res, response.OK, warehouse.warehouse_employees)
   } catch (err) {
     err.file = "warehouse.js"
-    err.function = "get_my_warehouse"
+    err.function = "get_employee_warehouse"
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+};
+
+exports.get_received_transactions_history = async (req, res) => {
+  try {
+    if (!req.warehouse) 
+      return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
+    const warehouse = await Warehouse.findById(req.warehouse._id)
+    .populate({
+      path: 'received_transactions_history', 
+      populate: {
+        path: 'transaction',
+        model: 'Transaction',
+        populate:[ 
+          {
+            path: 'source_transaction_spot',
+            model: 'TransactionSpot'
+          },
+          {
+            path: 'destination_transaction_spot',
+            model: 'TransactionSpot'
+          },
+          {
+            path: 'sender',
+            model: 'User'
+          },
+          {
+            path: 'receiver',
+            model: 'User'
+          }
+        ] 
+      }
+    })
+    const received_transactions_history = warehouse.received_transactions_history
+
+    return response.response_success(
+      res,
+      response.OK,
+      received_transactions_history
+    );
+  } catch (err) {
+    err.file = "warehouse.js";
+    err.function = "get_received_transactions_history";
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err);
+  }
+};
+
+exports.get_sent_transactions_history = async (req, res) => {
+  try {
+    if (!req.warehouse) 
+      return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
+    const warehouse = await Warehouse.findById(req.warehouse._id)
+    .populate({
+      path: 'sent_transactions_history', 
+      populate: {
+        path: 'transaction',
+        model: 'Transaction',
+        populate:[ 
+          {
+            path: 'source_transaction_spot',
+            model: 'TransactionSpot'
+          },
+          {
+            path: 'destination_transaction_spot',
+            model: 'TransactionSpot'
+          },
+          {
+            path: 'sender',
+            model: 'User'
+          },
+          {
+            path: 'receiver',
+            model: 'User'
+          }
+        ] 
+      }
+    })
+    const sent_transactions_history = warehouse.sent_transactions_history
+    
+    return response.response_success(
+      res,
+      response.OK,
+      sent_transactions_history
+    );
+  } catch (err) {
+    err.file = "warehouse.js";
+    err.function = "get_sent_transactions_history";
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err);
+  }
+};
+
+exports.get_unconfirm_transactions_from_warehouse = async (req, res) => {
+  try {
+    if (!req.warehouse) 
+      return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
+    const warehouse = req.warehouse
+    const unconfirm_transactions_from_warehouse = await Transaction.find({
+      _id: { $in: warehouse.unconfirm_transactions_from_warehouse },
+    })
+      .populate("sender")
+      .populate("receiver")
+      .populate("source_transaction_spot")
+      .populate("destination_transaction_spot");
+    return response.response_success(
+      res,
+      response.OK,
+      unconfirm_transactions_from_warehouse
+    );
+  } catch (err) {
+    err.file = "warehouse.js";
+    err.function = "get_unconfirm_transactions_from_warehouse";
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err);
+  }
+};
+
+exports.get_unconfirm_transactions_from_transaction_spot = async (req, res) => {
+  try {
+    if (!req.warehouse) 
+      return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
+    const warehouse = req.warehouse
+    const unconfirm_transactions_from_transaction_spot = await Transaction.find({
+      _id: { $in: warehouse.unconfirm_transactions_from_transaction_spot },
+    })
+      .populate("sender")
+      .populate("receiver")
+      .populate("source_transaction_spot")
+      .populate("destination_transaction_spot");
+    return response.response_success(
+      res,
+      response.OK,
+      unconfirm_transactions_from_transaction_spot
+    );
+  } catch (err) {
+    err.file = "warehouse.js";
+    err.function = "get_unconfirm_transactions_from_transaction_spot";
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err);
+  }
+};
+
+exports.get_inwarehouse_transactions_to_warehouse = async (req, res) => {
+  try {
+    if (!req.warehouse) 
+      return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
+    const warehouse = req.warehouse
+    const inwarehouse_transactions_to_warehouse = await Transaction.find({
+      _id: { $in: warehouse.inwarehouse_transactions_to_warehouse },
+    })
+      .populate("sender")
+      .populate("receiver")
+      .populate("source_transaction_spot")
+      .populate("destination_transaction_spot");
+    return response.response_success(
+      res,
+      response.OK,
+      inwarehouse_transactions_to_warehouse
+    );
+  } catch (err) {
+    err.file = "warehouse.js";
+    err.function = "get_inwarehouse_transactions_to_warehouse";
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err);
+  }
+};
+
+exports.get_inwarehouse_transactions_to_transaction_spot = async (req, res) => {
+  try {
+    if (!req.warehouse) 
+      return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
+    const warehouse = req.warehouse
+    const inwarehouse_transactions_to_transaction_spot = await Transaction.find({
+      _id: { $in: warehouse.inwarehouse_transactions_to_transaction_spot },
+    })
+      .populate("sender")
+      .populate("receiver")
+      .populate("source_transaction_spot")
+      .populate("destination_transaction_spot");
+    return response.response_success(
+      res,
+      response.OK,
+      inwarehouse_transactions_to_transaction_spot
+    );
+  } catch (err) {
+    err.file = "warehouse.js";
+    err.function = "get_inwarehouse_transactions_to_transaction_spot";
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err);
   }
 };
 

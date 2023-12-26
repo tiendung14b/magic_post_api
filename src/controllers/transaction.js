@@ -6,7 +6,7 @@ const qrcode = require('qrcode')
 const axios = require('axios')
 const uploadImage = require('../utils/upload_image')
 
-const COST_PER_METRE = 100
+const COST_PER_METRE = 0.1
 
 const find_nearest_transaction_spot = async (address) => {
   try {
@@ -64,7 +64,12 @@ exports.create_transaction = async (req, res) => {
       return response.response_fail(res, response.NOT_FOUND, 'Địa điểm nhận hàng chưa được hỗ trợ')
     }
     const destination_transaction_spot = nearest_transaction_spot._id
-    const shipping_cost = min_distance * COST_PER_METRE
+    const shipping_cost = geocode.calcDistance(
+      source_transaction_spot_info.location.lat,
+      source_transaction_spot_info.location.long,
+      nearest_transaction_spot.location.lat,
+      nearest_transaction_spot.location.long
+    ) * COST_PER_METRE
     if (!destination_transaction_spot) {
       return response.response_fail(res, response.NOT_FOUND, 'Địa điểm gửi hàng chưa được hỗ trợ')
     }

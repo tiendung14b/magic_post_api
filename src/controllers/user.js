@@ -118,7 +118,7 @@ exports.create_manager = async (req, res) => {
     const checkResult = usefulStuff.checkField(user)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
     await User.create(user)
-    mail.send_password('Cấp mật khẩu mới', req.password, user.email)
+    mail.send_password(req.password, user.email)
     return response.response_success(res, response.CREATED, user)
   } catch (err) {
     err.file = 'controller/user.js'
@@ -149,7 +149,7 @@ exports.create_warehouse_employee = async (req, res) => {
     const checkResult = usefulStuff.checkField(user)
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
     const newUser = await User.create(user)
-    mail.send_password('Cấp mật khẩu mới', req.password, user.email)
+    mail.send_password(req.password, user.email)
     await Warehouse.findByIdAndUpdate(warehouse._id, { $addToSet: {warehouse_employees: newUser._id}})
     return response.response_success(res, response.CREATED, newUser)
   } catch (err) {
@@ -182,7 +182,7 @@ exports.create_transaction_employee = async (req, res) => {
     if (checkResult.hasWrongField) return response.response_fail(res, response.BAD_REQUEST, checkResult.message)
     const newUser = await User.create(user)
     await TransactionSpot.findByIdAndUpdate(transactionSpot._id, { $addToSet: { transaction_employees: newUser._id } }, null)
-    mail.send_password('Cấp mật khẩu mới', req.password, user.email)
+    mail.send_password(req.password, user.email)
     return response.response_success(res, response.CREATED, newUser)
   } catch (err) {
     err.file = 'controller/user.js'
@@ -205,6 +205,50 @@ exports.update_password = async (req, res) => {
   } catch (err) {
     err.file = 'controller/user.js'
     err.function = 'update_password'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.send_reset_password_token = async (req, res) => {
+  try {
+    const { phone_number } = req.body
+    const user = await User.findOne({ phone_number: phone_number })
+    if (!user) {
+      return response.response_fail(res, response.NOT_FOUND, 'Phone number not exist.')
+    }
+    const verify_code = (Math.random() + 1).toString(36).substring(6)
+    const hash_verify_code = await bcrypt.hash(verify_code, 10)
+    await User.findOneAndUpdate({ phone_number: phone_number }, { reset_password_token: hash_verify_code })
+    response.response_success(res, response.OK, "Send verify code successfully")
+    await mail.send_verify_code(verify_code, user.email)
+  } catch (err) {
+    err.file = 'controller/user.js'
+    err.function = 'get_reset_password_token'
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
+  }
+}
+
+exports.reset_password = async (req, res) => {
+  try {
+    const { phone_number, verify_code } = req.body
+    const user = await User.findOne({ phone_number: phone_number })
+    if (!user) {
+      return response.response_fail(res, response.NOT_FOUND, 'Phone number not exist.')
+    }
+    console.log(verify_code, user.reset_password_token)
+    const match = await bcrypt.compare(verify_code, user.reset_password_token)
+    // const match = verify_code == user.reset_password_token
+    if (!match) {
+      return response.response_fail(res, response.NOT_FOUND, 'Verify code is incorrect.')
+    }
+    const new_password = Math.random().toString(36).substring(6)
+    const hash_password = await bcrypt.hash(new_password, 10)
+    await User.updateOne({ phone_number: phone_number }, { password: hash_password })
+    response.response_success(res, response.OK, "Reset password successfully")
+    await mail.send_reset_password(new_password, user.email)  
+  } catch (err) {
+    err.file = 'controller/user.js'
+    err.function = 'reset_password'
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, err)
   }
 }

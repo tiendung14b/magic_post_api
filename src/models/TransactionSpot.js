@@ -72,9 +72,7 @@ const transactionSpotSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId
   }],
   // history of transaction received from client to send away
-  sending_history: [{
-    type: mongoose.Schema.Types.ObjectId
-  }]
+  sending_history: []
 });
 
 const TransactionSpot = mongoose.model('TransactionSpot', transactionSpotSchema);

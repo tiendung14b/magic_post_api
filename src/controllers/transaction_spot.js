@@ -43,6 +43,11 @@ exports.create_transaction_spot = async (req, res) => {
         "workplace.role": role.TRANSACTION_MANAGER,
       },
     });
+    await Warehouse.findByIdAndUpdate(warehouse, {
+      $push: {
+        transaction_spots: transactionSpot._id,
+      },
+    });
     return response.response_success(
       res,
       response.OK,
@@ -388,7 +393,9 @@ exports.send_to_warehouse = async (req, res) => {
       );
     }
     const transactionSpot = await TransactionSpot.findById(transaction_spot_id);
-    const warehouse = await Warehouse.findOne(transactionSpot?.warehouse);
+    const warehouse = await Warehouse.findById(transactionSpot?.warehouse);
+    console.log(warehouse);
+    console.log(transactionSpot);
     if (!transactionSpot || !warehouse) {
       return response.response_fail(
         res,
@@ -398,7 +405,7 @@ exports.send_to_warehouse = async (req, res) => {
     }
     await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
       $pull: {
-        unconfirm_transactions: transaction_id,
+        from_client_transactions: transaction_id,
       },
     });
     await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
@@ -411,7 +418,7 @@ exports.send_to_warehouse = async (req, res) => {
     });
     await Warehouse.findByIdAndUpdate(warehouse._id, {
       $push: {
-        unconfirm_transactions: transaction_id,
+        unconfirm_transactions_from_transaction_spot: transaction_id,
       },
     });
     return response.response_success(

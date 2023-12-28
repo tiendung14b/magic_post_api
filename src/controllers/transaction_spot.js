@@ -452,7 +452,7 @@ exports.confirm_transaction = async (req, res) => {
       );
     }
     if (
-      transactionSpot.from_client_transactions.indexOf(transaction_id) == -1
+      transactionSpot.unconfirm_transactions.indexOf(transaction_id) == -1
     ) {
       return response.response_fail(
         res,

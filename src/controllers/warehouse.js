@@ -505,8 +505,9 @@ exports.receive_transaction_from_warehouse = async (req, res) => {
       return response.response_error(res, response.CONFLICT, "Data not consistent")
     }
     await Warehouse.findByIdAndUpdate(warehouse._id, 
-      { $pull: { unconfirm_transactions_from_warehouse: transaction._id }, 
-        $addToSet: { inwarehouse_transactions_to_transaction_spot: transaction._id, received_transactions_history: newHistory } 
+      {
+        $pull: { unconfirm_transactions_from_warehouse: transaction._id }, 
+        $push: { inwarehouse_transactions_to_transaction_spot: transaction._id, received_transactions_history: newHistory } 
       }
     )
     await Warehouse.findByIdAndUpdate(warehouse._id, {
@@ -553,7 +554,7 @@ exports.receive_transaction_from_transaction_spot = async (req, res) => {
     await Warehouse.findByIdAndUpdate(warehouse._id, 
       {
         $pull: { unconfirm_transactions_from_transaction_spot: transaction._id }, 
-        $push: { inwarehouse_transactions_to_transaction_spot: transaction._id, received_transactions_history: newHistory } 
+        $push: { inwarehouse_transactions_to_warehouse: transaction._id, received_transactions_history: newHistory } 
       }
     )
     const newStatus = {

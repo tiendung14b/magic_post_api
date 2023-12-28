@@ -187,9 +187,11 @@ exports.get_sent_transactions_history = async (req, res) => {
 
 exports.get_unconfirm_transactions_from_warehouse = async (req, res) => {
   try {
-    if (!req.warehouse) 
-      return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
-    const warehouse = req.warehouse
+    if (!req.params.warehouse_id) 
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: warehouse id')
+    const warehouse = await Warehouse.findById(req.params.warehouse_id)
+    if (!warehouse)
+      return response.response_fail(res, response.NOT_FOUND, 'Warehouse not found')
     const unconfirm_transactions_from_warehouse = await Transaction.find({
       _id: { $in: warehouse.unconfirm_transactions_from_warehouse },
     })
@@ -211,9 +213,11 @@ exports.get_unconfirm_transactions_from_warehouse = async (req, res) => {
 
 exports.get_unconfirm_transactions_from_transaction_spot = async (req, res) => {
   try {
-    if (!req.warehouse) 
-      return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
-    const warehouse = req.warehouse
+    if (!req.params.warehouse_id) 
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: warehouse id')
+    const warehouse = await Warehouse.findById(req.params.warehouse_id)
+    if (!warehouse)
+      return response.response_fail(res, response.NOT_FOUND, 'Warehouse not found')
     const unconfirm_transactions_from_transaction_spot = await Transaction.find({
       _id: { $in: warehouse.unconfirm_transactions_from_transaction_spot },
     })
@@ -235,9 +239,11 @@ exports.get_unconfirm_transactions_from_transaction_spot = async (req, res) => {
 
 exports.get_inwarehouse_transactions_to_warehouse = async (req, res) => {
   try {
-    if (!req.warehouse) 
-      return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
-    const warehouse = req.warehouse
+    if (!req.params.warehouse_id) 
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: warehouse id')
+    const warehouse = await Warehouse.findById(req.params.warehouse_id)
+    if (!warehouse)
+      return response.response_fail(res, response.NOT_FOUND, 'Warehouse not found')
     const inwarehouse_transactions_to_warehouse = await Transaction.find({
       _id: { $in: warehouse.inwarehouse_transactions_to_warehouse },
     })
@@ -259,9 +265,11 @@ exports.get_inwarehouse_transactions_to_warehouse = async (req, res) => {
 
 exports.get_inwarehouse_transactions_to_transaction_spot = async (req, res) => {
   try {
-    if (!req.warehouse) 
-      return response.response_fail(res, response.INTERNAL_SERVER_ERROR, 'auth middleware didnt pass warehouse doc')
-    const warehouse = req.warehouse
+    if (!req.params.warehouse_id) 
+      return response.response_fail(res, response.BAD_REQUEST, 'Missing params: warehouse id')
+    const warehouse = await Warehouse.findById(req.params.warehouse_id)
+    if (!warehouse)
+      return response.response_fail(res, response.NOT_FOUND, 'Warehouse not found')
     const inwarehouse_transactions_to_transaction_spot = await Transaction.find({
       _id: { $in: warehouse.inwarehouse_transactions_to_transaction_spot },
     })

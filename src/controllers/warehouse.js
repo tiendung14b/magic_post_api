@@ -470,11 +470,6 @@ exports.send_transaction_to_transaction_spot = async (req, res) => {
     await TransactionSpot.findByIdAndUpdate(destination_transaction_spot._id, 
       { $addToSet: { unconfirm_transactions: transaction._id } }
       )
-    const newStatus = {
-      date: Date.now(),
-      location: destination_transaction_spot.name
-    }
-    await Transaction.findByIdAndUpdate(transaction._id, { $addToSet: { status: newStatus } })
     return response.response_success(res, response.OK, "Task completed")
   } catch (err) {
     err.file = "warehouse.js"

@@ -64,13 +64,9 @@ const transactionSpotSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId
   }], 
   // transactions successfully delivered to client
-  success_transactions: [{
-    type: mongoose.Schema.Types.ObjectId
-  }],
+  success_transactions: [],
   // transactions fail to delivered to client
-  failed_transactions: [{
-    type: mongoose.Schema.Types.ObjectId
-  }],
+  failed_transactions: [],
   // history of transaction received from client to send away
   sending_history: []
 });

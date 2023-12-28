@@ -411,8 +411,8 @@ exports.send_to_warehouse = async (req, res) => {
     await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
       $push: {
         sending_history: {
-          date: Date.now(),
-          transaction_id
+          time: Date.now(),
+          transaction: transaction_id
         },
       },
     });
@@ -514,8 +514,8 @@ exports.confirm_delivery = async (req, res) => {
       await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
         $push: {
           success_transactions: {
-            transaction_id,
-            date: Date.now(),
+            transaction: transaction_id,
+            time: Date.now(),
           }
         },
       });
@@ -535,8 +535,8 @@ exports.confirm_delivery = async (req, res) => {
       await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
         $push: {
           failed_transactions: {
-            transaction_id,
-            date: Date.now(),
+            transaction: transaction_id,
+            time: Date.now(),
           }
         },
       });

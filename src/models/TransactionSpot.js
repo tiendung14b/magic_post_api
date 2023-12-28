@@ -24,6 +24,18 @@ const locationSchema = new mongoose.Schema({
   }
 });
 
+const historySchema = new mongoose.Schema({
+  transaction: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction',
+    required: true
+  },
+  time: {
+    type: Date,
+    required: true
+  }
+});
+
 const transactionSpotSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -64,11 +76,11 @@ const transactionSpotSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId
   }], 
   // transactions successfully delivered to client
-  success_transactions: [],
+  success_transactions: [{ type: historySchema }],
   // transactions fail to delivered to client
-  failed_transactions: [],
+  failed_transactions: [{ type: historySchema }],
   // history of transaction received from client to send away
-  sending_history: []
+  sending_history: [{ type: historySchema }]
 });
 
 const TransactionSpot = mongoose.model('TransactionSpot', transactionSpotSchema);

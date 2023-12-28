@@ -623,10 +623,45 @@ exports.get_statistic = async (req, res) => {
         "transaction_spot not found"
       );
     }
+    
+    const sending_history_map = {};
+    const success_transactions_map = {};
+    const failed_transactions_map = {};
+
+    transactionSpot.sending_history.forEach((item) => {
+      const date = new Date(item.time);
+      const key = (date.getMonth() + 1) + "/" + date.getFullYear();
+      if (!sending_history_map[key]) {
+        sending_history_map[key] = [item.transaction];
+      } else {
+        sending_history_map[key].push(item.transaction);
+      }
+    });
+
+    transactionSpot.success_transactions.forEach((item) => {
+      const date = new Date(item.time);
+      const key = (date.getMonth() + 1) + "/" + date.getFullYear();
+      if (!success_transactions_map[key]) {
+        success_transactions_map[key] = [item.transaction];
+      } else {
+        success_transactions_map[key].push(item.transaction);
+      }
+    });
+
+    transactionSpot.failed_transactions.forEach((item) => {
+      const date = new Date(item.time);
+      const key = (date.getMonth() + 1) + "/" + date.getFullYear();
+      if (!failed_transactions_map[key]) {
+        failed_transactions_map[key] = [item.transaction];
+      } else {
+        failed_transactions_map[key].push(item.transaction);
+      }
+    });
+
     return response.response_success(res, response.OK, {
-      sending_history: transactionSpot.sending_history,
-      success_transactions: transactionSpot.success_transactions,
-      failed_transactions: transactionSpot.failed_transactions
+      sending_history: sending_history_map,
+      success_transactions: success_transactions_map,
+      failed_transactions: failed_transactions_map,
     });
   } catch (err) {
     err.file = "transaction_spot.js";

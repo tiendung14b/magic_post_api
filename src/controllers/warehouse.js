@@ -427,18 +427,14 @@ exports.send_transaction_to_warehouse = async (req, res) => {
       { $pull: { inwarehouse_transactions_to_warehouse: transaction._id }, $addToSet: { sent_transactions_history: newHistory } }
       )
     await Warehouse.findByIdAndUpdate(destination_warehouse._id, 
-      { $addToSet: { unconfirm_transactions_from_warehouse: transaction._id } }
+      { $push: { unconfirm_transactions_from_warehouse: transaction._id } }
       )
     const newStatus = {
       date: Date.now(),
       location: destination_warehouse.name
     }
     await Transaction.findByIdAndUpdate(transaction._id, { $addToSet: { status: newStatus } })
-    return response.response_success(
-      res, 
-      response.OK, 
-      'ship transaction from this warehouse to destination warehouse'
-      );
+    return response.response_success(res, response.OK, "Task completed")
   } catch (err) {
     err.file = "warehouse.js"
     err.function = "send_transaction_to_warehouse"
@@ -479,11 +475,7 @@ exports.send_transaction_to_transaction_spot = async (req, res) => {
       location: destination_transaction_spot.name
     }
     await Transaction.findByIdAndUpdate(transaction._id, { $addToSet: { status: newStatus } })
-    return response.response_success(
-      res, 
-      response.OK, 
-      'ship transaction from this warehouse to destination transaction spot'
-      )
+    return response.response_success(res, response.OK, "Task completed")
   } catch (err) {
     err.file = "warehouse.js"
     err.function = "send_transaction_to_transaction_spot"
@@ -510,33 +502,26 @@ exports.receive_transaction_from_warehouse = async (req, res) => {
     }
     const warehouse_has_transaction_spot = warehouse.transaction_spots.includes(transaction.destination_transaction_spot)
     if (!warehouse_has_transaction_spot) {
-      await Warehouse.findByIdAndUpdate(warehouse._id, 
-        { $pull: { unconfirm_transactions_from_warehouse: transaction._id }, 
-          $addToSet: { inwarehouse_transactions_to_warehouse: transaction._id, received_transactions_history: newHistory } 
-        }
-      )
-    } else await Warehouse.findByIdAndUpdate(warehouse._id, 
-        { $pull: { unconfirm_transactions_from_warehouse: transaction._id }, 
-          $addToSet: { inwarehouse_transactions_to_transaction_spot: transaction._id, received_transactions_history: newHistory } 
-        }
-      )
-    const newStatus = {
-      status: 'SUCCESS',
-      date: Date.now(),
-      location: warehouse.name
+      return response.response_error(res, response.CONFLICT, "Data not consistent")
     }
-    await Transaction.findByIdAndUpdate(transaction._id, { $addToSet: { status: newStatus } })
-    if (!warehouse_has_transaction_spot) 
-    return response.response_success(
-      res, 
-      response.OK, 
-      'this warehouse doesnt have destination transaction spot, redirect to another warehouse'
-    );
-    else return response.response_success(
-        res, 
-        response.OK, 
-        'received. Ready to ship to destination transaction spot'
-      )
+    await Warehouse.findByIdAndUpdate(warehouse._id, 
+      { $pull: { unconfirm_transactions_from_warehouse: transaction._id }, 
+        $addToSet: { inwarehouse_transactions_to_transaction_spot: transaction._id, received_transactions_history: newHistory } 
+      }
+    )
+    await Warehouse.findByIdAndUpdate(warehouse._id, {
+      $push: {
+        inwarehouse_transactions_to_transaction_spot: transaction._id
+      }
+    })
+    await Transaction.findByIdAndUpdate(transaction._id, {
+      $set: {
+        status: "WAITING",
+        date: Date.now(),
+        location: warehouse.name
+      }
+    })
+    return response.response_success(res, response.OK, "Task completed")
   } catch (err) {
     err.file = "warehouse.js"
     err.function = "receive_transaction_from_warehouse "
@@ -563,31 +548,21 @@ exports.receive_transaction_from_transaction_spot = async (req, res) => {
     }
     const warehouse_has_transaction_spot = warehouse.transaction_spots.includes(transaction.destination_transaction_spot)
     if (!warehouse_has_transaction_spot) {
-      await Warehouse.findByIdAndUpdate(warehouse._id, 
-        { $pull: { unconfirm_transactions_from_transaction_spot: transaction._id }, 
-          $addToSet: { inwarehouse_transactions_to_warehouse: transaction._id, received_transactions_history: newHistory } 
-        })
-    } else await Warehouse.findByIdAndUpdate(warehouse._id, 
-      { $pull: { unconfirm_transactions_from_transaction_spot: transaction._id }, 
-        $addToSet: { inwarehouse_transactions_to_transaction_spot: transaction._id, received_transactions_history: newHistory } 
-      })
+      return response.response_error(res, response.CONFLICT, "Data not consistent")
+    }
+    await Warehouse.findByIdAndUpdate(warehouse._id, 
+      {
+        $pull: { unconfirm_transactions_from_transaction_spot: transaction._id }, 
+        $push: { inwarehouse_transactions_to_transaction_spot: transaction._id, received_transactions_history: newHistory } 
+      }
+    )
     const newStatus = {
-      status: 'SUCCESS',
+      status: 'WAITING',
       date: Date.now(),
       location: warehouse.name
     }
-    await Transaction.findByIdAndUpdate(transaction._id, { $addToSet: { status: newStatus } })
-    if (!warehouse_has_transaction_spot) 
-    return response.response_success(
-      res, 
-      response.OK, 
-      'this warehouse doesnt have destination transaction spot, redirect to another warehouse'
-    );
-    else return response.response_success(
-          res, 
-          response.OK, 
-          'received. Ready to ship to destination transaction spot'
-        );
+    await Transaction.findByIdAndUpdate(transaction._id, { $push: { status: newStatus } })
+    return response.response_success(res, response.OK, "Task completed")
   } catch (err) {
     err.file = "warehouse.js"
     err.function = "receive_transaction_from_transaction_spot "

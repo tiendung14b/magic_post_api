@@ -110,9 +110,12 @@ exports.create_transaction = async (req, res) => {
 exports.get_transaction = async (req, res) => {
   try {
     const transaction = await Transaction.findById(req.params.id)
-    return response.response_success(res, transaction)
+    if (!transaction) {
+      return response.response_fail(res, response.NOT_FOUND, 'Transaction not found')
+    }
+    return response.response_success(res, response.OK, transaction)
   } catch (error) {
-    error.file = 'transaction_spot.js'
+    error.file = 'transaction.js'
     error.function = 'get_transaction'
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, error)
   }

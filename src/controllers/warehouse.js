@@ -547,10 +547,10 @@ exports.receive_transaction_from_transaction_spot = async (req, res) => {
     const newHistory = {
       transaction: transaction._id
     }
-    const warehouse_has_transaction_spot = warehouse.transaction_spots.includes(transaction.destination_transaction_spot)
-    if (!warehouse_has_transaction_spot) {
-      return response.response_error(res, response.CONFLICT, "Data not consistent")
-    }
+    // const warehouse_has_transaction_spot = warehouse.transaction_spots.includes(transaction.destination_transaction_spot)
+    // if (!warehouse_has_transaction_spot) {
+    //   return response.response_error(res, response.CONFLICT, "Data not consistent")
+    // }
     await Warehouse.findByIdAndUpdate(warehouse._id, 
       {
         $pull: { unconfirm_transactions_from_transaction_spot: transaction._id }, 

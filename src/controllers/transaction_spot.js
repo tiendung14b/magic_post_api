@@ -624,7 +624,7 @@ exports.get_statistic = async (req, res) => {
       );
     }
     return response.response_success(res, response.OK, {
-      sending_history: transactionSpot.sending_histor,
+      sending_history: transactionSpot.sending_history,
       success_transactions: transactionSpot.success_transactions,
       failed_transactions: transactionSpot.failed_transactions
     });

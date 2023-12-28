@@ -493,10 +493,10 @@ exports.receive_transaction_from_warehouse = async (req, res) => {
     const transaction = await Transaction.findById(req.params.transaction_id)
     if (!transaction) 
       return response.response_fail(res, response.NOT_FOUND, 'transaction not found')
-    if (!transaction.destination_transaction_spot) 
-      return response.response_fail(res, response.NOT_FOUND, 'transaction doesnt have destination transaction spot')
-    if (!warehouse.unconfirm_transactions_from_warehouse.includes(transaction._id)) 
-      return response.response_fail(res, response.NOT_FOUND, 'transaction not in waiting from warehouse list')
+    // if (!transaction.destination_transaction_spot) 
+    //   return response.response_fail(res, response.NOT_FOUND, 'transaction doesnt have destination transaction spot')
+    // if (!warehouse.unconfirm_transactions_from_warehouse.includes(transaction._id)) 
+    //   return response.response_fail(res, response.NOT_FOUND, 'transaction not in waiting from warehouse list')
     const newHistory = {
       transaction: transaction._id
     }

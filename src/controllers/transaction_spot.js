@@ -584,3 +584,46 @@ exports.delivery = async (req, res) => {
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, error);
   }
 };
+
+exports.get_statistic = async (req, res) => {
+  try {
+    const id = req.params.transaction_spot_id;
+    if (!id) {
+      return response.response_fail(
+        res,
+        response.BAD_REQUEST,
+        "Missing params: transaction_spot_id is required"
+      );
+    }
+    const transactionSpot = await TransactionSpot.findById(id);
+    if (!transactionSpot) {
+      return response.response_fail(
+        res,
+        response.NOT_FOUND,
+        "transaction_spot not found"
+      );
+    }
+    const success_transactions = await Transaction.find({
+      _id: { $in: transactionSpot.success_transactions },
+    });
+    const failed_transactions = await Transaction.find({
+      _id: { $in: transactionSpot.failed_transactions },
+    });
+    const sending_history = await Transaction.find({
+      _id: { $in: transactionSpot.sending_history },
+    });
+    return response.response_success(
+      res,
+      response.OK,
+      {
+        success_transactions,
+        failed_transactions,
+        sending_history,
+      }
+    );
+  } catch (err) {
+    err.file = "transaction_spot.js";
+    err.function = "get_statistic";
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err);
+  }
+}

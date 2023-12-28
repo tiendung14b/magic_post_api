@@ -495,26 +495,15 @@ exports.confirm_delivery = async (req, res) => {
   try {
     const { transaction_id, transaction_spot_id, status } = req.body;
     if (!transaction_id || !transaction_spot_id || !status) {
-      return response.response_fail(
-        res,
-        response.BAD_REQUEST,
-        "Missing params"
+      return response.response_fail(res, response.BAD_REQUEST, "Missing params"
       );
     }
     const transactionSpot = await TransactionSpot.findById(transaction_spot_id);
     if (!transactionSpot) {
-      return response.response_fail(
-        res,
-        response.NOT_FOUND,
-        "Transaction spot not found"
-      );
+      return response.response_fail(res, response.NOT_FOUND, "Transaction spot not found");
     }
     if (transactionSpot.to_client_transactions.indexOf(transaction_id) == -1) {
-      return response.response_fail(
-        res,
-        response.BAD_REQUEST,
-        "Transaction not found"
-      );
+      return response.response_fail(res,response.BAD_REQUEST,"Transaction not found");
     }
     await TransactionSpot.findByIdAndUpdate(transaction_spot_id, {
       $pull: {
@@ -537,6 +526,9 @@ exports.confirm_delivery = async (req, res) => {
             date: Date.now(),
             location: transactionSpot.name,
           },
+        },
+        $set: {
+          receive_date: Date.now(),
         },
       });
     } else {

@@ -585,6 +585,22 @@ exports.delivery = async (req, res) => {
   }
 };
 
+exports.get_sending_history_statistic = async (data) => {
+  try {
+    if (data.length <= 0) return;
+    const result = [data[0]]
+    for (let i = 1; i < data.length; i++) {
+      const prev_date = new Date(data[i - 1].time);
+      const cur_date = new Date(data[i].time);
+      
+    }
+  } catch (err) {
+    err.file = "transaction_spot.js";
+    err.function = "get_sending_history_statistic";
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err);
+  }
+};
+
 exports.get_statistic = async (req, res) => {
   try {
     const id = req.params.transaction_spot_id;
@@ -625,5 +641,16 @@ exports.get_statistic = async (req, res) => {
     err.file = "transaction_spot.js";
     err.function = "get_statistic";
     return response.response_error(res, response.INTERNAL_SERVER_ERROR, err);
+  }
+}
+
+exports.create_mock_transaction = async (req, res) => {
+  const { transaction_spot_id, transaction_id } = req.body;
+  if (!transaction_spot_id || !transaction_id) {
+    return response.response_fail(
+      res,
+      response.BAD_REQUEST,
+      "Missing params"
+    );
   }
 }

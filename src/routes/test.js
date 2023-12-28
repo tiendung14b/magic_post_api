@@ -19,11 +19,7 @@ route.use(body_parse.json())
 
 route.post('/doSomething', async (req, res) => {
     try {
-        const warehouse = {
-            name: 'test zone',
-            warehouse_manager: '000000000000000000000000'
-        }
-        await Warehouse.create(warehouse)
+        await TransactionSpot.create({});
 
         response.response_success(res, response.CREATED, "You did it")
     } catch (err) {

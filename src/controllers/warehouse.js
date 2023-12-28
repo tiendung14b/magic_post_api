@@ -515,13 +515,6 @@ exports.receive_transaction_from_warehouse = async (req, res) => {
         inwarehouse_transactions_to_transaction_spot: transaction._id
       }
     })
-    await Transaction.findByIdAndUpdate(transaction._id, {
-      $set: {
-        status: "WAITING",
-        date: Date.now(),
-        location: warehouse.name
-      }
-    })
     return response.response_success(res, response.OK, "Task completed")
   } catch (err) {
     err.file = "warehouse.js"

@@ -611,7 +611,11 @@ exports.get_statistic = async (req, res) => {
         "Missing params: transaction_spot_id is required"
       );
     }
-    const transactionSpot = await TransactionSpot.findById(id);
+    const transactionSpot = await TransactionSpot.findById(id)
+      .populate({ path: "sending_history.transaction" })
+      .populate({ path: "success_transactions.transaction" })
+      .populate({ path: "failed_transactions.transaction" });
+
     if (!transactionSpot) {
       return response.response_fail(
         res,
@@ -619,24 +623,11 @@ exports.get_statistic = async (req, res) => {
         "transaction_spot not found"
       );
     }
-    const success_transactions = await Transaction.find({
-      _id: { $in: transactionSpot.success_transactions },
+    return response.response_success(res, response.OK, {
+      sending_history: transactionSpot.sending_histor,
+      success_transactions: transactionSpot.success_transactions,
+      failed_transactions: transactionSpot.failed_transactions
     });
-    const failed_transactions = await Transaction.find({
-      _id: { $in: transactionSpot.failed_transactions },
-    });
-    const sending_history = await Transaction.find({
-      _id: { $in: transactionSpot.sending_history },
-    });
-    return response.response_success(
-      res,
-      response.OK,
-      {
-        success_transactions,
-        failed_transactions,
-        sending_history,
-      }
-    );
   } catch (err) {
     err.file = "transaction_spot.js";
     err.function = "get_statistic";

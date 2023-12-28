@@ -33,6 +33,6 @@ router.get('/get_unconfirmed/:transaction_spot_id', auth.authTransactionSpotEmpl
 router.get('/get_to_client_transactions/:transaction_spot_id', transactionSpotController.get_to_client_transaction)
 router.get('/sending_history/:transaction_spot_id', transactionSpotController.get_sending_history)
 
-router.get('/get_statistic/:transaction_spot_id', auth.authTransactionSpotManager, transactionSpotController.get_statistic)
+router.get('/get_statistic/:transaction_spot_id', transactionSpotController.get_statistic)
 
 module.exports = router

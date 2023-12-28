@@ -29,7 +29,7 @@ router.post('/confirm_transaction', auth.authTransactionSpotEmployee, transactio
 router.post('/confirm_delivery', auth.authTransactionSpotEmployee, transactionSpotController.confirm_delivery)
 
 router.get('/get_from_client_transactions/:transaction_spot_id', transactionSpotController.get_from_client_transaction)
-router.get('/get_unconfirmed/:transaction_spot_id', auth.authWarehouseEmployee, transactionSpotController.get_unconfirmed_transaction)
+router.get('/get_unconfirmed/:transaction_spot_id', auth.authTransactionSpotEmployee, transactionSpotController.get_unconfirmed_transaction)
 router.get('/get_to_client_transactions/:transaction_spot_id', transactionSpotController.get_to_client_transaction)
 router.get('/sending_history/:transaction_spot_id', transactionSpotController.get_sending_history)
 

@@ -381,6 +381,64 @@ exports.get_sending_history = async (req, res) => {
   }
 };
 
+exports.get_success_history = async (req, res) => {
+  try {
+    const id = req.params.transaction_spot_id;
+    if (!id) {
+      return response.response_fail(res, response.BAD_REQUEST, "Missing params: transaction_spot_id is required");
+    }
+    const transaction_spot = await TransactionSpot.findById(id);
+    if (!transaction_spot) {
+      return response.response_fail(res, response.NOT_FOUND, "transaction_spot not found");
+    }
+    const success_history = await Transaction.find({
+      _id: { $in: transaction_spot.success_transactions },
+    })
+      .populate("sender")
+      .populate("receiver")
+      .populate("source_transaction_spot")
+      .populate("destination_transaction_spot");
+    return response.response_success(res, response.OK, success_history);
+  } catch (err) {
+    err.file = "transaction_spot.js";
+    err.function = "get_success_history";
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err);
+  }
+};
+
+exports.get_fail_history = async (req, res) => {
+  try {
+    const id = req.params.transaction_spot_id;
+    if (!id) {
+      return response.response_fail(
+        res,
+        response.BAD_REQUEST,
+        "Missing params: transaction_spot_id is required"
+      );
+    }
+    const transaction_spot = await TransactionSpot.findById(id);
+    if (!transaction_spot) {
+      return response.response_fail(
+        res,
+        response.NOT_FOUND,
+        "transaction_spot not found"
+      );
+    }
+    const fail_history = await Transaction.find({
+      _id: { $in: transaction_spot.failed_transactions },
+    })
+      .populate("sender")
+      .populate("receiver")
+      .populate("source_transaction_spot")
+      .populate("destination_transaction_spot");
+    return response.response_success(res, response.OK, fail_history);
+  } catch (err) {
+    err.file = "transaction_spot.js";
+    err.function = "get_fail_history";
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err);
+  }
+};
+
 exports.send_to_warehouse = async (req, res) => {
   try {
     const { transaction_id, transaction_spot_id } = req.body;

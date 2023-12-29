@@ -32,6 +32,8 @@ router.get('/get_from_client_transactions/:transaction_spot_id', transactionSpot
 router.get('/get_unconfirmed/:transaction_spot_id', auth.authTransactionSpotEmployee, transactionSpotController.get_unconfirmed_transaction)
 router.get('/get_to_client_transactions/:transaction_spot_id', transactionSpotController.get_to_client_transaction)
 router.get('/sending_history/:transaction_spot_id', transactionSpotController.get_sending_history)
+router.get('success_history/:transaction_spot_id', transactionSpotController.get_success_history)
+router.get('/fail_history/:transaction_spot_id', transactionSpotController.get_fail_history)
 
 router.get('/get_statistic/:transaction_spot_id', transactionSpotController.get_statistic)
 

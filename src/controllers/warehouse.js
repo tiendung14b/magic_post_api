@@ -185,6 +185,58 @@ exports.get_sent_transactions_history = async (req, res) => {
   }
 };
 
+exports.get_statistics = async (req, res) => {
+  try {
+    const id = req.params.warehouse_id;
+    if (!id) {
+      return response.response_fail(res, response.BAD_REQUEST, "Missing params: warehouse id");
+    }
+    const warehouse = await Warehouse.findById(id)
+      .populate('received_transactions_history.transaction')
+      .populate('sent_transactions_history.transaction')
+    if (!warehouse) {
+      return response.response_fail(res, response.NOT_FOUND, "Warehouse not found");
+    }
+
+    const received_transactions_history_map = {}
+    const sent_transactions_history_map = {}
+
+    warehouse.received_transactions_history.forEach(item => {
+      const date = new Date(item.time)
+      const year = date.getFullYear()
+      const month = date.getMonth()
+      const key = `${month}/${year}`
+      if (!received_transactions_history_map[key]) {
+        received_transactions_history_map[key] = [item.transaction]
+      } else {
+        received_transactions_history_map[key].push(item.transaction)
+      }
+    })
+
+    warehouse.sent_transactions_history.forEach(item => {
+      const date = new Date(item.time)
+      const year = date.getFullYear()
+      const month = date.getMonth()
+      const key = `${month}/${year}`
+      if (!sent_transactions_history_map[key]) {
+        sent_transactions_history_map[key] = [item.transaction]
+      } else {
+        sent_transactions_history_map[key].push(item.transaction)
+      }
+    })
+
+    return response.response_success(res, response.OK, {
+      received_transactions: received_transactions_history_map,
+      sent_transactions: sent_transactions_history_map
+    });
+
+  } catch (err) {
+    err.file = "warehouse.js";
+    err.function = "get_statistics";
+    return response.response_error(res, response.INTERNAL_SERVER_ERROR, err);
+  }
+}
+
 exports.get_unconfirm_transactions_from_warehouse = async (req, res) => {
   try {
     if (!req.params.warehouse_id) 

@@ -4,12 +4,12 @@ const route = express.Router()
 const body_parse = require('body-parser')
 const cors = require('cors')
 const User = require('../models/User')
-const Warehouse = require('../models/Warehouse')
 const TransactionSpot = require('../models/TransactionSpot')
 const response = require('../utils/response');
 const auth = require('../middleware/auth');
 const userController = require('../controllers/user')
 const bcrypt = require('bcrypt')
+const Warehouse = require('../models/Warehouse')
 const Transaction = require('../models/Transaction')
 
 route.use(cors({
@@ -80,9 +80,9 @@ route.post('/create_mock_transaction', async (req, res) => {
     const list_id = list.map(item => item._id)
     for (let i = 0; i < list_id.length; i++) {
       const id = list_id[i];
-      await TransactionSpot.findByIdAndUpdate("658db0b88940c9ca1e4abda3", {
+      await Warehouse.findByIdAndUpdate("658db03f8940c9ca1e4abd8e", {
         $push: {
-          sending_history: {
+          received_transactions_history: {
             transaction: id,
             time: list_mock[i].send_date
           }
@@ -90,6 +90,14 @@ route.post('/create_mock_transaction', async (req, res) => {
       })
     }
   }
+  // await Warehouse.findByIdAndUpdate("658db03f8940c9ca1e4abd8e", {
+  //   $push: {
+  //     sent_transactions_history: {
+  //       transaction: "658db399eda9aab315d71157",
+  //       time: Date.now()
+  //     }
+  //   }
+  // })
   return res.json("ok")
 })
 

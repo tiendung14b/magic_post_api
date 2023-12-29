@@ -27,7 +27,6 @@ exports.authDirector = (req, res, next) => {
 
 exports.authWarehouseManager = async (req, res, next) => {
   const token = req.headers.access_token
-  console.log(token)
   if (!token) 
     return response.response_fail(res, response.UNAUTHORIZED, 'unauthorized')
   let user = undefined

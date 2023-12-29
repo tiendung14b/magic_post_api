@@ -37,6 +37,8 @@ router.get('/inwarehouse_transactions_to_transaction_spot/:warehouse_id', wareho
 
 router.get('/:id', auth.authDirector, warehouseController.get_warehouse)
 
+router.get('/get_statistics/:warehouse_id', warehouseController.get_statistics)
+
 router.put('/transaction_from_warehouse/:transaction_id', auth.authWarehouseEmployee, warehouseController.receive_transaction_from_warehouse)
 
 router.put('/transaction_from_transaction_spot/:transaction_id', auth.authWarehouseEmployee, warehouseController.receive_transaction_from_transaction_spot)

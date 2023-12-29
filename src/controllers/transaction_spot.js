@@ -9,7 +9,6 @@ const role = require("../utils/role");
 exports.create_transaction_spot = async (req, res) => {
   try {
     const { name, location, warehouse, transaction_manager } = req.body;
-    console.log(req.body);
     const geocodeInfo = await geocode.getPostalCode(
       location.detail + ", " + location.district + ", " + location.city
     );
@@ -394,8 +393,6 @@ exports.send_to_warehouse = async (req, res) => {
     }
     const transactionSpot = await TransactionSpot.findById(transaction_spot_id);
     const warehouse = await Warehouse.findById(transactionSpot?.warehouse);
-    console.log(warehouse);
-    console.log(transactionSpot);
     if (!transactionSpot || !warehouse) {
       return response.response_fail(
         res,
